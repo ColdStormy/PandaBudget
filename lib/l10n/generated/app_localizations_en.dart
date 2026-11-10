@@ -562,6 +562,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trendTitle => 'Last 12 months';
 
   @override
+  String get planVsActual => 'Plan and reality';
+
+  @override
+  String get planned => 'Planned';
+
+  @override
+  String get actual => 'Actual';
+
+  @override
+  String get difference => 'Better / worse';
+
+  @override
   String get addAccount => 'Add account';
 
   @override

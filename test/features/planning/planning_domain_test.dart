@@ -431,6 +431,22 @@ void main() {
       expect(result.years.single.goalContributionsMinor, 120000);
     });
 
+    test('can be asked about a single past month', () {
+      // Used to compare the plan with what really happened in that month.
+      final result = buildForecast(
+        from: const YearMonth(2027, 3),
+        monthCount: 1,
+        items: [salary, rent, insurance],
+        budgets: const [food],
+        goals: const [],
+        categories: categories,
+      );
+      final march = result.months.single;
+      expect(march.incomeMinor, 300000);
+      expect(march.expensesMinor, 210000);
+      expect(march.savingsPotentialMinor, 90000);
+    });
+
     test('the balance accumulates what stays free', () {
       final result = forecast(months: 3);
       expect(result.months.map((m) => m.balanceMinor), [

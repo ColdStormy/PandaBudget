@@ -200,6 +200,10 @@ T = {
     "byCategory": ("By category", "Nach Kategorie"),
     "noTransactionsInMonth": ("No transactions in this month", "Keine Umsätze in diesem Monat"),
     "trendTitle": ("Last 12 months", "Letzte 12 Monate"),
+    "planVsActual": ("Plan and reality", "Plan und Wirklichkeit"),
+    "planned": ("Planned", "Geplant"),
+    "actual": ("Actual", "Tatsächlich"),
+    "difference": ("Better / worse", "Besser / schlechter"),
 
     # Accounts
     "addAccount": ("Add account", "Konto anlegen"),

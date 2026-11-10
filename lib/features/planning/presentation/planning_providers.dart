@@ -55,6 +55,25 @@ final forecastProvider = Provider<AsyncValue<Forecast>>((ref) {
   );
 });
 
+/// What the plan says about a single month, past or future. Null while
+/// the plan is loading. Used to compare the plan with what really happened.
+final monthPlanProvider = Provider.family<MonthForecast?, YearMonth>((
+  ref,
+  month,
+) {
+  final items = ref.watch(plannedItemsProvider).value;
+  final budgets = ref.watch(budgetsProvider).value;
+  if (items == null || budgets == null) return null;
+  return buildForecast(
+    from: month,
+    monthCount: 1,
+    items: items,
+    budgets: budgets,
+    goals: const [],
+    categories: ref.watch(categoryTreeProvider),
+  ).months.single;
+});
+
 /// "Monthly", "Every 3 months", "Once" ...
 String recurrenceLabel(AppLocalizations l10n, PlannedItem item) =>
     switch (item.unit) {

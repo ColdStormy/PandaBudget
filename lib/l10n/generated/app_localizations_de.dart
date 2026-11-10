@@ -565,6 +565,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trendTitle => 'Letzte 12 Monate';
 
   @override
+  String get planVsActual => 'Plan und Wirklichkeit';
+
+  @override
+  String get planned => 'Geplant';
+
+  @override
+  String get actual => 'Tatsächlich';
+
+  @override
+  String get difference => 'Besser / schlechter';
+
+  @override
   String get addAccount => 'Konto anlegen';
 
   @override

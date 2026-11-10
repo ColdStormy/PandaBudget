@@ -12,6 +12,7 @@ import 'package:pandabudget/features/analysis/domain/analysis.dart';
 import 'package:pandabudget/features/analysis/presentation/budget_status_view.dart';
 import 'package:pandabudget/features/categories/domain/category.dart';
 import 'package:pandabudget/features/categories/presentation/category_widgets.dart';
+import 'package:pandabudget/features/planning/domain/forecast.dart';
 import 'package:pandabudget/features/planning/presentation/planning_providers.dart';
 import 'package:pandabudget/features/transactions/domain/ledger_transaction.dart';
 import 'package:pandabudget/features/transactions/presentation/transaction_providers.dart';
@@ -162,6 +163,11 @@ class _AnalysisScreenState extends ConsumerState<AnalysisScreen> {
                             _showTransactions(month, tree, id),
                       ),
               ),
+              if (ref.watch(monthPlanProvider(month)) case final plan?
+                  when plan.incomeMinor != 0 || plan.expensesMinor != 0) ...[
+                SectionHeader(l10n.planVsActual),
+                _PlanComparison(plan: plan, actual: summary),
+              ],
               if (statuses.isNotEmpty) ...[
                 SectionHeader(l10n.tabBudgets),
                 AdaptiveColumns(
@@ -212,6 +218,101 @@ class _AnalysisScreenState extends ConsumerState<AnalysisScreen> {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+/// Planned and actual income, spending and balance of a month side by
+/// side, with the difference.
+class _PlanComparison extends StatelessWidget {
+  const _PlanComparison({required this.plan, required this.actual});
+
+  final MonthForecast plan;
+  final MonthSummary actual;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final muted = theme.textTheme.labelMedium?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
+
+    // [higherIsBetter] decides whether a positive difference is good news.
+    TableRow row(
+      String label,
+      int planned,
+      int actualValue, {
+      required bool higherIsBetter,
+    }) {
+      final difference = actualValue - planned;
+      return TableRow(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: Insets.sm),
+            child: Text(label),
+          ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: AmountText(planned, style: theme.textTheme.bodyMedium),
+          ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: AmountText(actualValue, style: theme.textTheme.titleSmall),
+          ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: AmountText(
+              higherIsBetter ? difference : -difference,
+              tone: AmountTone.signed,
+              showPlus: true,
+              style: theme.textTheme.bodyMedium,
+            ),
+          ),
+        ],
+      );
+    }
+
+    return PandaCard(
+      child: Table(
+        columnWidths: const {
+          0: FlexColumnWidth(1.2),
+          1: FlexColumnWidth(),
+          2: FlexColumnWidth(),
+          3: FlexColumnWidth(),
+        },
+        defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+        children: [
+          TableRow(
+            children: [
+              const SizedBox.shrink(),
+              for (final header in [l10n.planned, l10n.actual, l10n.difference])
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(header, style: muted),
+                ),
+            ],
+          ),
+          row(
+            l10n.income,
+            plan.incomeMinor,
+            actual.incomeMinor,
+            higherIsBetter: true,
+          ),
+          row(
+            l10n.spending,
+            plan.expensesMinor,
+            actual.expenseMinor,
+            higherIsBetter: false,
+          ),
+          row(
+            l10n.net,
+            plan.savingsPotentialMinor,
+            actual.netMinor,
+            higherIsBetter: true,
+          ),
+        ],
       ),
     );
   }

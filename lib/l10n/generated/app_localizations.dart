@@ -1112,6 +1112,30 @@ abstract class AppLocalizations {
   /// **'Last 12 months'**
   String get trendTitle;
 
+  /// No description provided for @planVsActual.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan and reality'**
+  String get planVsActual;
+
+  /// No description provided for @planned.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned'**
+  String get planned;
+
+  /// No description provided for @actual.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual'**
+  String get actual;
+
+  /// No description provided for @difference.
+  ///
+  /// In en, this message translates to:
+  /// **'Better / worse'**
+  String get difference;
+
   /// No description provided for @addAccount.
   ///
   /// In en, this message translates to:
