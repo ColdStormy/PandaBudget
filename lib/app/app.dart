@@ -27,7 +27,9 @@ class PandaBudgetApp extends ConsumerWidget {
           ? null
           : Locale(settings.languageCode!),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
+      // English first: it is the fallback for system languages the app has
+      // no translation for.
+      supportedLocales: const [Locale('en'), Locale('de')],
     );
   }
 }

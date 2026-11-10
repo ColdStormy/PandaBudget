@@ -10,6 +10,8 @@ import 'package:pandabudget/app/app.dart';
 import 'package:pandabudget/database/app_database.dart';
 import 'package:pandabudget/database/database_provider.dart';
 import 'package:pandabudget/features/importing/presentation/import_wizard_controller.dart';
+import 'package:pandabudget/features/settings/data/drift_settings_repository.dart';
+import 'package:pandabudget/features/settings/domain/app_settings.dart';
 
 /// A bank export as a customer would download it.
 const String _bankFile = '''
@@ -30,6 +32,9 @@ void main() {
   testWidgets('first use: account, import, analysis', (tester) async {
     final database = AppDatabase(NativeDatabase.memory());
     addTearDown(database.close);
+    // The test looks for English texts, whatever the machine's language.
+    await DriftSettingsRepository(database)
+        .save(const AppSettings(languageCode: 'en'));
 
     await tester.pumpWidget(
       ProviderScope(
@@ -47,7 +52,17 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    /// Database results arrive a moment after a frame settles, so wait
+    /// for the expected widget instead of assuming it is there already.
+    Future<void> waitFor(Finder finder) async {
+      for (var i = 0; i < 100 && finder.evaluate().isEmpty; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(finder, findsWidgets);
+    }
+
     Future<void> tap(Finder finder) async {
+      await waitFor(finder);
       await tester.ensureVisible(finder.first);
       await tester.pumpAndSettle();
       await tester.tap(finder.first);
@@ -55,27 +70,27 @@ void main() {
     }
 
     // The overview guides a new user to the first step.
-    expect(find.text('Welcome to PandaBudget'), findsOneWidget);
+    await waitFor(find.text('Welcome to PandaBudget'));
     await tap(find.text('Add an account'));
     await tester.enterText(find.widgetWithText(TextFormField, 'Name'), 'Giro');
     await tap(find.text('Save'));
 
     await tap(find.text('Import transactions'));
     await tap(find.text('Choose a file'));
-    expect(find.text('3 rows found'), findsOneWidget);
+    await waitFor(find.text('3 rows found'));
     await tap(find.text('Next'));
     await tap(find.text('Next'));
     await tap(find.text('Import 3 transactions'));
 
     // Back on the overview, the month now has figures.
-    expect(find.text('3 transactions need a category'), findsOneWidget);
+    await waitFor(find.text('3 transactions need a category'));
 
     await tap(find.text('Transactions'));
-    expect(find.text('REWE Markt'), findsOneWidget);
-    expect(find.text('Employer Ltd'), findsOneWidget);
+    await waitFor(find.text('REWE Markt'));
+    await waitFor(find.text('Employer Ltd'));
 
     await tap(find.text('Analysis'));
-    expect(find.text('By category'), findsOneWidget);
+    await waitFor(find.text('By category'));
 
     final stored = await database.select(database.transactions).get();
     expect(stored.map((t) => t.amountMinor).toSet(), {-5432, 325000, -7900});

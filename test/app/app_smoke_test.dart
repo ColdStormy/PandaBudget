@@ -37,4 +37,9 @@ void main() {
     expect(find.text('Willkommen bei PandaBudget'), findsOneWidget);
     expect(find.text('Übersicht'), findsOneWidget);
   });
+
+  appTest('falls back to English for other system languages', (tester) async {
+    await pumpApp(tester, languageCode: 'fr');
+    expect(find.text('Welcome to PandaBudget'), findsOneWidget);
+  });
 }
