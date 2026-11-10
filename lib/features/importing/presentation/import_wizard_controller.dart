@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meta/meta.dart';
+import 'package:pandabudget/features/accounts/data/drift_account_repository.dart';
 import 'package:pandabudget/features/importing/application/import_service.dart';
 import 'package:pandabudget/features/importing/data/drift_import_repositories.dart';
 import 'package:pandabudget/features/importing/domain/import_parser.dart';
@@ -139,6 +140,16 @@ class ImportWizardController extends Notifier<ImportWizardState> {
         : ImportFileType.csv;
     final baseName = file.name.replaceFirst(RegExp(r'\.[^.]+$'), '');
     final saved = await ref.read(importProfileRepositoryProvider).getAll();
+    // With a single account there is nothing to choose.
+    if (state.accountId == null) {
+      final accounts = await ref
+          .read(accountRepositoryProvider)
+          .watchAll()
+          .first;
+      if (accounts.length == 1) {
+        state = state.copyWith(accountId: () => accounts.single.id);
+      }
+    }
 
     // A saved profile may need its own delimiter or header row to read the
     // file, so each candidate reads the file with its own settings.

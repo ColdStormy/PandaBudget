@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:meta/meta.dart';
 import 'package:pandabudget/app/app.dart';
 import 'package:pandabudget/core/time/clock.dart';
 import 'package:pandabudget/database/app_database.dart';
@@ -31,7 +32,9 @@ Future<AppDatabase> pumpApp(
   ImportFilePicker? picker,
 }) async {
   final db = database ?? createTestDatabase(languageCode: languageCode);
-  addTearDown(db.close);
+  // The database has to be closed in real time; in the fake-async zone of
+  // a widget test closing would never finish.
+  addTearDown(() => tester.runAsync(db.close));
 
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -70,14 +73,28 @@ Future<void> settle(WidgetTester tester) async {
   }
 }
 
-/// Unmounts the app and lets pending database timers run out, so the test
-/// framework finds no leftovers.
-Future<void> disposeApp(WidgetTester tester) async {
-  await tester.pumpWidget(const SizedBox.shrink());
-  await tester.runAsync(
-    () => Future<void>.delayed(const Duration(milliseconds: 20)),
-  );
-  await tester.pump(const Duration(seconds: 1));
+/// A widget test that runs the whole app.
+///
+/// Like [testWidgets], but always unmounts the app afterwards, also when an
+/// expectation failed. Without that, timers of open database streams stay
+/// pending and a failing test hangs instead of reporting its failure.
+@isTest
+void appTest(
+  String description,
+  Future<void> Function(WidgetTester tester) body, {
+  bool? skip,
+}) {
+  testWidgets(description, (tester) async {
+    try {
+      await body(tester);
+    } finally {
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 20)),
+      );
+      await tester.pump(const Duration(seconds: 1));
+    }
+  }, skip: skip);
 }
 
 /// Loads the real Roboto and Material icon fonts, so rendered screenshots

@@ -21,8 +21,6 @@ import '../helpers/test_database.dart';
 /// Text rendering differs slightly between operating systems, so the
 /// comparison only runs on Linux (which is also what CI uses).
 void main() {
-  setUpAll(loadAppFonts);
-
   final sections = [
     'Overview',
     'Planning',
@@ -36,7 +34,7 @@ void main() {
     ('phone_dark', phoneSize, AppThemeMode.dark),
     ('desktop_light', desktopSize, AppThemeMode.light),
   ]) {
-    testWidgets('main screens: $name', (tester) async {
+    appTest('main screens: $name', (tester) async {
       final db = createTestDatabase();
       await tester.runAsync(() async {
         await seedDemoData(db);
@@ -58,7 +56,6 @@ void main() {
           matchesGoldenFile('images/${name}_${section.toLowerCase()}.png'),
         );
       }
-      await disposeApp(tester);
     }, skip: !Platform.isLinux);
   }
 }

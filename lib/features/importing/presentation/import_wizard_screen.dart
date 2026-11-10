@@ -86,26 +86,34 @@ class ImportWizardScreen extends ConsumerWidget {
                               state.step == ImportStep.review &&
                                       !state.usesSavedProfile
                                   ? ImportStep.columns
-                                  : state.step == ImportStep.review
-                                  ? ImportStep.file
                                   : ImportStep.file,
                             ),
                       child: Text(l10n.back),
                     ),
-                  const Spacer(),
-                  if (state.step == ImportStep.file && state.usesSavedProfile)
-                    Padding(
-                      padding: const EdgeInsets.only(right: Insets.sm),
-                      child: TextButton(
-                        onPressed: state.canContinueFromFile
-                            ? () => controller.goTo(ImportStep.columns)
-                            : null,
-                        child: Text(l10n.adjustColumns),
-                      ),
+                  gapSm,
+                  // Wraps onto a second line on narrow phones or with long
+                  // translations instead of overflowing.
+                  Expanded(
+                    child: Wrap(
+                      alignment: WrapAlignment.end,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: Insets.sm,
+                      runSpacing: Insets.sm,
+                      children: [
+                        if (state.step == ImportStep.file &&
+                            state.usesSavedProfile)
+                          TextButton(
+                            onPressed: state.canContinueFromFile
+                                ? () => controller.goTo(ImportStep.columns)
+                                : null,
+                            child: Text(l10n.adjustColumns),
+                          ),
+                        FilledButton(
+                          onPressed: state.isBusy ? null : onNext,
+                          child: Text(nextLabel),
+                        ),
+                      ],
                     ),
-                  FilledButton(
-                    onPressed: state.isBusy ? null : onNext,
-                    child: Text(nextLabel),
                   ),
                 ],
               ),

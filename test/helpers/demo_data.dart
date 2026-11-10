@@ -149,11 +149,11 @@ Future<void> seedDemoData(AppDatabase db) async {
       targetMonth: const YearMonth(2027, 6),
       accountId: savings,
     ),
-    SavingsGoal(
+    const SavingsGoal(
       name: 'Next car',
       targetMinor: 1200000,
       savedMinor: 420000,
-      targetMonth: const YearMonth(2028, 3),
+      targetMonth: YearMonth(2028, 3),
       priority: 1,
       colorValue: 0xFF5B7C99,
     ),
