@@ -1,0 +1,3 @@
+tags:
+  # Screenshot comparisons, see test/goldens/screens_golden_test.dart.
+  golden:

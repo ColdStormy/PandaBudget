@@ -25,3 +25,6 @@ linter:
     # `const new(...)` instead of `const ClassName(...)` is still unfamiliar
     # to most readers.
     unnecessary_type_name_in_constructor: false
+    # Riverpod provider types are long and say nothing the initialiser
+    # does not already say.
+    specify_nonobvious_property_types: false
