@@ -8,7 +8,7 @@ analyzer:
     - windows/**
     - "**/*.g.dart"
     - lib/l10n/generated/**
-    - lib/database/migrations/schema_versions.dart
+    - lib/database/app_database.steps.dart
     - test/drift/**/generated/**
   language:
     strict-casts: true

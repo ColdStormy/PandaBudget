@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:drift/native.dart';
 import 'package:drift_dev/api/migrations_native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pandabudget/database/app_database.dart';
@@ -36,12 +37,26 @@ void main() {
     });
   }
 
-  test('a freshly created database matches the current snapshot', () async {
-    final connection = await verifier.startAt(AppDatabase.currentSchemaVersion);
-    // startAt creates the snapshot's schema; opening the app database on top
-    // validates that the tables defined in code are identical to it.
-    final db = AppDatabase(connection);
+  test(
+    'the tables in code match the snapshot of the current version',
+    () async {
+      // Create the database from the stored snapshot, then let the app
+      // compare what it finds with the tables defined in code. A difference
+      // means tables were changed without a new schema version.
+      final connection = await verifier.startAt(
+        AppDatabase.currentSchemaVersion,
+      );
+      final db = AppDatabase(connection);
+      addTearDown(db.close);
+      await db.validateDatabaseSchema();
+    },
+  );
+
+  test('a database created by the app matches the snapshot', () async {
+    final db = AppDatabase(NativeDatabase.memory());
     addTearDown(db.close);
+    // Opens the database, which creates all tables from code.
+    await db.customSelect('SELECT 1').get();
     await verifier.migrateAndValidate(db, AppDatabase.currentSchemaVersion);
   });
 }

@@ -7,8 +7,8 @@ upgrade the existing file in place. Three things make that safe:
    in git.
 2. `test/drift/app_database/migration_test.dart` creates a database at each
    old version, runs the app's migration and compares the result with the
-   current schema. It also fails if tables were changed without a new
-   version.
+   current schema. It also fails if tables were changed without raising the
+   version and exporting a new snapshot.
 3. Before an upgrade runs, the app copies the database file to
    `<file>.v<old version>.bak` next to it
    (`backupBeforeUpgrade` in `lib/database/connection.dart`).
@@ -19,18 +19,23 @@ upgrade the existing file in place. Three things make that safe:
 
 2. Raise `currentSchemaVersion` in `lib/database/app_database.dart` by one.
 
-3. Regenerate code and export the new schema. This also writes
-   `lib/database/app_database.steps.dart` with typed helpers for each step.
+3. Regenerate the database code:
 
    ```bash
    dart run build_runner build
    ```
 
+4. Export the new schema and generate the migration helpers:
+
    ```bash
    dart run drift_dev make-migrations
    ```
 
-4. Describe the upgrade in `AppDatabase.migration`, replacing the
+   This writes `drift_schemas/app_database/drift_schema_v<N>.json`,
+   `lib/database/app_database.steps.dart` (typed helpers for each step) and
+   the schema classes under `test/drift/app_database/generated/`.
+
+5. Describe the upgrade in `AppDatabase.migration`, replacing the
    placeholder `onUpgrade`:
 
    ```dart
@@ -46,20 +51,38 @@ upgrade the existing file in place. Three things make that safe:
    Each step uses the `schema` of *its* target version, so old steps keep
    working when tables change again later.
 
-5. Regenerate the test helpers for all versions and run the tests:
-
-   ```bash
-   dart run drift_dev schema generate drift_schemas/app_database/ test/drift/app_database/generated/
-   ```
+6. Run the migration tests. They now also migrate from the previous
+   version:
 
    ```bash
    flutter test test/drift
    ```
 
-6. If the step moves or transforms data (not only adds a column), add a
-   test that inserts rows at the old version and checks them after the
-   migration. `make-migrations` creates a template for this in
-   `test/drift/app_database/` on the first upgrade.
+7. Add a test that proves existing data survives, especially when a step
+   moves or transforms data rather than only adding a column:
+
+   ```dart
+   import 'generated/schema_v1.dart' as v1;
+
+   test('existing accounts survive the upgrade from v1 to v2', () async {
+     final schema = await verifier.schemaAt(1);
+     final old = v1.DatabaseAtV1(schema.newConnection());
+     await old.customStatement(
+       "INSERT INTO accounts (name, kind, opening_date, color_value) "
+       "VALUES ('Giro', 'checking', 20260101, 1)",
+     );
+     await old.close();
+
+     final db = AppDatabase(schema.newConnection());
+     addTearDown(db.close);
+     final accounts = await db.select(db.accounts).get();
+     expect(accounts.single.name, 'Giro');
+   });
+   ```
+
+This exact sequence (adding a nullable `bankName` column to accounts as
+version 2) was run once as a rehearsal while setting up the project; it is
+not part of the code base, which is still at version 1.
 
 ## Rules of thumb
 
