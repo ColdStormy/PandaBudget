@@ -1,0 +1,26 @@
+{
+ "account": {
+  "iban": "DE00",
+  "owner": "Household"
+ },
+ "transactions": [
+  {
+   "bookingDate": "2026-10-01T08:15:00Z",
+   "amount": {
+    "value": "-12.50",
+    "currency": "EUR"
+   },
+   "creditorName": "Bakery",
+   "remittanceInformation": "Bread and rolls"
+  },
+  {
+   "bookingDate": "2026-10-02T00:00:00Z",
+   "amount": {
+    "value": "2500.00",
+    "currency": "EUR"
+   },
+   "creditorName": "Employer Ltd",
+   "remittanceInformation": "Salary October"
+  }
+ ]
+}

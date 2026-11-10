@@ -1,0 +1,11 @@
+"Girokonto";"DE12 3456 7890 1234 5678 90"
+"Zeitraum:";"01.10.2026 - 31.10.2026"
+"Kontostand vom 31.10.2026:";"2.345,67 EUR"
+
+"Buchungstag";"Wertstellung";"Buchungstext";"Begünstigter/Zahlungspflichtiger";"Verwendungszweck";"IBAN";"Betrag (EUR)"
+"30.10.2026";"30.10.2026";"Lastschrift";"REWE Markt GmbH";"REWE SAGT DANKE 4711";"DE89370400440532013000";"-54,32"
+"28.10.2026";"28.10.2026";"Gehalt";"Muster Arbeitgeber AG";"Lohn/Gehalt 10/2026";"DE02120300000000202051";"3.250,00"
+"27.10.2026";"27.10.2026";"Dauerauftrag";"Hausverwaltung Müller";"Miete Oktober; Whg 12";"DE02500105170137075030";"-980,00"
+"15.10.2026";"16.10.2026";"Kartenzahlung";"Bäckerei Schön";"Brötchen";"";"-4,80"
+"15.10.2026";"16.10.2026";"Kartenzahlung";"Bäckerei Schön";"Brötchen";"";"-4,80"
+"02.10.2026";"02.10.2026";"Lastschrift";"Stadtwerke Musterstadt";"Abschlag Strom 10/2026 Preis 79,00 €";"DE12500105170648489890";"-79,00"
