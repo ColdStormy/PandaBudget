@@ -455,3 +455,17 @@ class AddLink extends StatelessWidget {
     );
   }
 }
+
+/// Joins the parts of a row subtitle with " · ", leaving out empty parts and
+/// parts that repeat an earlier one (ignoring case), such as a bank purpose
+/// that is the same word as the category.
+String joinDetails(Iterable<String?> parts) {
+  final seen = <String>{};
+  return [
+    for (final part in parts)
+      if (part != null &&
+          part.trim().isNotEmpty &&
+          seen.add(part.trim().toLowerCase()))
+        part.trim(),
+  ].join(' · ');
+}

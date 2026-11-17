@@ -8,6 +8,7 @@ import 'package:pandabudget/core/theme/spacing.dart';
 import 'package:pandabudget/core/time/clock.dart';
 import 'package:pandabudget/core/time/dates.dart';
 import 'package:pandabudget/core/time/year_month.dart';
+import 'package:pandabudget/core/widgets/page_widgets.dart';
 import 'package:pandabudget/core/widgets/panda_widgets.dart';
 import 'package:pandabudget/features/accounts/domain/account.dart';
 import 'package:pandabudget/features/accounts/presentation/account_providers.dart';
@@ -43,86 +44,96 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
     final setFilter = ref.read(transactionFilterProvider.notifier).set;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.navTransactions),
-        actions: [
-          TextButton.icon(
-            onPressed: () => context.push(Routes.importWizard),
-            icon: const Icon(Icons.upload_file_outlined),
-            label: Text(l10n.importShort),
-          ),
-          gapSm,
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        tooltip: l10n.addTransaction,
-        onPressed: () => context.push(Routes.transactionEdit()),
-        child: const Icon(Icons.add),
-      ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 880),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  Insets.md,
-                  Insets.xs,
-                  Insets.md,
-                  Insets.sm,
-                ),
-                child: TextField(
-                  controller: _search,
-                  textInputAction: TextInputAction.search,
-                  decoration: InputDecoration(
-                    hintText: l10n.searchTransactions,
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: filter.query.isEmpty
-                        ? null
-                        : IconButton(
-                            tooltip: l10n.clear,
-                            icon: const Icon(Icons.close),
-                            onPressed: () {
-                              _search.clear();
-                              setFilter(filter.copyWith(query: ''));
-                            },
-                          ),
+      body: SafeArea(
+        bottom: false,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 880),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: Insets.md),
+                  child: PageHeader(
+                    title: l10n.navTransactions,
+                    action: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextButton.icon(
+                          onPressed: () => context.push(Routes.importWizard),
+                          icon: const Icon(Icons.upload_file_outlined),
+                          label: Text(l10n.importShort),
+                        ),
+                        IconButton(
+                          tooltip: l10n.addTransaction,
+                          color: Theme.of(context).colorScheme.primary,
+                          icon: const Icon(Icons.add),
+                          onPressed: () =>
+                              context.push(Routes.transactionEdit()),
+                        ),
+                      ],
+                    ),
                   ),
-                  onChanged: (value) =>
-                      setFilter(filter.copyWith(query: value)),
                 ),
-              ),
-              _FilterBar(filter: filter, accounts: accounts, tree: tree),
-              Expanded(
-                child: AsyncView(
-                  value: transactions,
-                  builder: (transactions) {
-                    if (transactions.isEmpty) {
-                      return filter.isEmpty
-                          ? EmptyState(
-                              icon: Icons.receipt_long_outlined,
-                              title: l10n.noTransactionsTitle,
-                              message: l10n.noTransactionsMessage,
-                              action: FilledButton.icon(
-                                onPressed: () =>
-                                    context.push(Routes.importWizard),
-                                icon: const Icon(Icons.upload_file_outlined),
-                                label: Text(l10n.importBankFile),
-                              ),
-                            )
-                          : EmptyState(
-                              icon: Icons.search_off,
-                              title: l10n.noTransactionsFound,
-                            );
-                    }
-                    return _TransactionList(
-                      transactions: transactions,
-                      showAccount: accounts.length > 1,
-                    );
-                  },
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    Insets.md,
+                    Insets.xs,
+                    Insets.md,
+                    Insets.sm,
+                  ),
+                  child: TextField(
+                    controller: _search,
+                    textInputAction: TextInputAction.search,
+                    decoration: InputDecoration(
+                      hintText: l10n.searchTransactions,
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: filter.query.isEmpty
+                          ? null
+                          : IconButton(
+                              tooltip: l10n.clear,
+                              icon: const Icon(Icons.close),
+                              onPressed: () {
+                                _search.clear();
+                                setFilter(filter.copyWith(query: ''));
+                              },
+                            ),
+                    ),
+                    onChanged: (value) =>
+                        setFilter(filter.copyWith(query: value)),
+                  ),
                 ),
-              ),
-            ],
+                _FilterBar(filter: filter, accounts: accounts, tree: tree),
+                Expanded(
+                  child: AsyncView(
+                    value: transactions,
+                    builder: (transactions) {
+                      if (transactions.isEmpty) {
+                        return filter.isEmpty
+                            ? EmptyState(
+                                icon: Icons.receipt_long_outlined,
+                                title: l10n.noTransactionsTitle,
+                                message: l10n.noTransactionsMessage,
+                                action: FilledButton.icon(
+                                  onPressed: () =>
+                                      context.push(Routes.importWizard),
+                                  icon: const Icon(Icons.upload_file_outlined),
+                                  label: Text(l10n.importBankFile),
+                                ),
+                              )
+                            : EmptyState(
+                                icon: Icons.search_off,
+                                title: l10n.noTransactionsFound,
+                              );
+                      }
+                      return _TransactionList(
+                        transactions: transactions,
+                        showAccount: accounts.length > 1,
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -336,18 +347,13 @@ class _TransactionList extends ConsumerWidget {
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.only(bottom: Insets.xxl * 2),
+      padding: const EdgeInsets.fromLTRB(Insets.md, 0, Insets.md, Insets.xxl),
       itemCount: items.length,
       itemBuilder: (context, index) {
         final item = items[index];
         if (item is DateTime) {
           return Padding(
-            padding: const EdgeInsets.fromLTRB(
-              Insets.md,
-              Insets.md,
-              Insets.md,
-              Insets.xs,
-            ),
+            padding: const EdgeInsets.only(top: Insets.md, bottom: Insets.xs),
             child: Text(
               context.formatDayHeader(item),
               style: theme.textTheme.labelLarge?.copyWith(
@@ -417,19 +423,14 @@ class TransactionTile extends ConsumerWidget {
               ?.name
         : null;
 
-    final details = [
+    final details = joinDetails([
       if (showDate) context.formatShortDate(transaction.bookingDate),
       category?.name ?? l10n.uncategorized,
-      if (transaction.counterparty.isNotEmpty && transaction.purpose.isNotEmpty)
-        transaction.purpose,
-      ?accountName,
-    ];
+      if (transaction.counterparty.isNotEmpty) transaction.purpose,
+      accountName,
+    ]);
 
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: Insets.md,
-        vertical: 2,
-      ),
+    return PandaListRow(
       leading: Tooltip(
         message: l10n.changeCategory,
         child: InkWell(
@@ -446,7 +447,7 @@ class TransactionTile extends ConsumerWidget {
                   child: Container(
                     padding: const EdgeInsets.all(2),
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.surfaceContainerLow,
+                      color: theme.colorScheme.surface,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -460,22 +461,11 @@ class TransactionTile extends ConsumerWidget {
           ),
         ),
       ),
-      title: Text(
-        transaction.title.isEmpty ? l10n.noDescription : transaction.title,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-      subtitle: Text(
-        details.join(' · '),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-      trailing: AmountText(
-        transaction.amountMinor,
-        tone: AmountTone.incomeOnly,
-        showPlus: true,
-        style: theme.textTheme.titleMedium,
-      ),
+      title: transaction.title.isEmpty ? l10n.noDescription : transaction.title,
+      subtitle: details,
+      amountMinor: transaction.amountMinor,
+      tone: AmountTone.incomeOnly,
+      showPlus: true,
       onTap: () => context.push(Routes.transactionEdit(transaction.id)),
     );
   }

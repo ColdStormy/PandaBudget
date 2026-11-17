@@ -206,6 +206,22 @@ void main() {
     expect(taps, 1);
   });
 
+  test('joinDetails drops empty and repeated parts, ignoring case', () {
+    expect(
+      joinDetails(['Fuel', 'fuel ', 'Main account']),
+      'Fuel · Main account',
+    );
+    expect(
+      joinDetails([null, '', 'Dinner', 'Eating out']),
+      'Dinner · Eating out',
+    );
+    expect(
+      joinDetails(['Nov 5', 'Groceries', 'Card payment']),
+      'Nov 5 · Groceries · Card payment',
+    );
+    expect(joinDetails(const []), '');
+  });
+
   testWidgets('SectionHeader opens something when it has onTap', (
     tester,
   ) async {

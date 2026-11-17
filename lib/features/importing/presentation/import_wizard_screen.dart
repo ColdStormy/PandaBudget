@@ -6,6 +6,7 @@ import 'package:pandabudget/core/l10n/l10n.dart';
 import 'package:pandabudget/core/theme/panda_colors.dart';
 import 'package:pandabudget/core/theme/spacing.dart';
 import 'package:pandabudget/core/widgets/form_widgets.dart';
+import 'package:pandabudget/core/widgets/page_widgets.dart';
 import 'package:pandabudget/core/widgets/panda_widgets.dart';
 import 'package:pandabudget/features/accounts/presentation/account_providers.dart';
 import 'package:pandabudget/features/categories/presentation/category_widgets.dart';
@@ -51,10 +52,7 @@ class ImportWizardScreen extends ConsumerWidget {
     };
 
     return Scaffold(
-      appBar: AppBar(
-        leading: const CloseButton(),
-        title: Text(l10n.importTitle),
-      ),
+      appBar: SubpageBar(title: l10n.importTitle),
       body: Column(
         children: [
           _StepHeader(step: state.step),
@@ -71,7 +69,6 @@ class ImportWizardScreen extends ConsumerWidget {
               ),
             ),
           ),
-          const Divider(),
           SafeArea(
             top: false,
             child: Padding(
@@ -79,7 +76,7 @@ class ImportWizardScreen extends ConsumerWidget {
               child: Row(
                 children: [
                   if (state.step != ImportStep.file)
-                    OutlinedButton(
+                    TextButton(
                       onPressed: state.isBusy
                           ? null
                           : () => controller.goTo(
@@ -125,6 +122,7 @@ class ImportWizardScreen extends ConsumerWidget {
   }
 }
 
+/// "1 File · 2 Columns · 3 Review": the current step in accent colour.
 class _StepHeader extends StatelessWidget {
   const _StepHeader({required this.step});
 
@@ -140,42 +138,26 @@ class _StepHeader extends StatelessWidget {
       l10n.importStepReview,
     ];
     return Padding(
-      padding: const EdgeInsets.fromLTRB(Insets.md, 0, Insets.md, Insets.md),
+      padding: const EdgeInsets.fromLTRB(Insets.md, 0, Insets.md, Insets.sm),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          for (final (index, label) in labels.indexed) ...[
-            if (index > 0)
-              Container(
-                width: 28,
-                height: 1,
-                margin: const EdgeInsets.symmetric(horizontal: Insets.sm),
-                color: theme.colorScheme.outlineVariant,
-              ),
-            CircleAvatar(
-              radius: 12,
-              backgroundColor: index <= step.index
-                  ? theme.colorScheme.primary
-                  : theme.colorScheme.surfaceContainerHighest,
-              foregroundColor: index <= step.index
-                  ? theme.colorScheme.onPrimary
-                  : theme.colorScheme.onSurfaceVariant,
-              child: Text('${index + 1}', style: theme.textTheme.labelMedium),
-            ),
-            gapSm,
-            Flexible(
+          for (final (index, label) in labels.indexed)
+            Expanded(
               child: Text(
-                label,
+                '${index + 1}  $label',
+                textAlign: TextAlign.center,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.labelLarge?.copyWith(
                   color: index == step.index
-                      ? theme.colorScheme.onSurface
+                      ? theme.colorScheme.primary
                       : theme.colorScheme.onSurfaceVariant,
+                  fontWeight: index == step.index
+                      ? FontWeight.w600
+                      : FontWeight.w500,
                 ),
               ),
             ),
-          ],
         ],
       ),
     );
@@ -199,47 +181,28 @@ class _FileStep extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.all(Insets.md),
       children: [
-        PandaCard(
+        PandaListRow(
           onTap: controller.pickFile,
-          child: Row(
-            children: [
-              ColorAvatar(
-                color: theme.colorScheme.primary,
-                icon: file == null
-                    ? Icons.upload_file_outlined
-                    : Icons.description_outlined,
-                size: 48,
-              ),
-              gapMd,
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      file?.name ?? l10n.chooseFile,
-                      style: theme.textTheme.titleMedium,
-                    ),
-                    gapXs,
-                    Text(
-                      file == null
-                          ? l10n.chooseFileHint
-                          : state.table == null
-                          ? l10n.fileNotReadable
-                          : l10n.rowsFound(state.table!.rows.length),
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (file != null)
-                TextButton(
+          leading: ColorAvatar(
+            color: theme.colorScheme.primary,
+            icon: file == null
+                ? Icons.upload_file_outlined
+                : Icons.description_outlined,
+            size: 48,
+          ),
+          title: file?.name ?? l10n.chooseFile,
+          subtitle: file == null
+              ? l10n.chooseFileHint
+              : state.table == null
+              ? l10n.fileNotReadable
+              : l10n.rowsFound(state.table!.rows.length),
+          subtitleMaxLines: 2,
+          trailing: file == null
+              ? null
+              : TextButton(
                   onPressed: controller.pickFile,
                   child: Text(l10n.change),
                 ),
-            ],
-          ),
         ),
         if (state.tableError != null) ...[
           gapMd,
@@ -330,21 +293,13 @@ class _ColumnsStep extends ConsumerWidget {
           onChanged: controller.updateProfile,
         ),
         FieldLabel(l10n.importPreview),
-        Card(
-          child: samples.isEmpty
-              ? Padding(
-                  padding: const EdgeInsets.all(Insets.md),
-                  child: Text(l10n.importPreviewEmpty),
-                )
-              : Column(
-                  children: [
-                    for (final (index, row) in samples.indexed) ...[
-                      if (index > 0) const Divider(indent: Insets.md),
-                      _SampleTile(row: row),
-                    ],
-                  ],
-                ),
-        ),
+        if (samples.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: Insets.sm),
+            child: Text(l10n.importPreviewEmpty),
+          )
+        else
+          for (final row in samples) _SampleTile(row: row),
         gapMd,
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
@@ -376,39 +331,27 @@ class _SampleTile extends StatelessWidget {
     final l10n = context.l10n;
     final transaction = row.transaction;
     if (transaction == null) {
-      return ListTile(
-        dense: true,
+      return PandaListRow(
         leading: Icon(
           Icons.error_outline,
           color: Theme.of(context).colorScheme.error,
         ),
-        title: Text(l10n.rowNumber(row.rowNumber)),
-        subtitle: Text(
-          row.issues.map((issue) => importIssueLabel(l10n, issue)).join(', '),
-        ),
+        title: l10n.rowNumber(row.rowNumber),
+        subtitle: row.issues
+            .map((issue) => importIssueLabel(l10n, issue))
+            .join(', '),
+        subtitleMaxLines: 2,
       );
     }
-    return ListTile(
-      dense: true,
-      title: Text(
-        transaction.title.isEmpty ? l10n.noDescription : transaction.title,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-      subtitle: Text(
-        [
-          context.formatDate(transaction.bookingDate),
-          if (transaction.counterparty.isNotEmpty) transaction.purpose,
-        ].where((part) => part.isNotEmpty).join(' · '),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-      trailing: AmountText(
-        transaction.amountMinor,
-        tone: AmountTone.incomeOnly,
-        showPlus: true,
-        style: Theme.of(context).textTheme.titleSmall,
-      ),
+    return PandaListRow(
+      title: transaction.title.isEmpty ? l10n.noDescription : transaction.title,
+      subtitle: joinDetails([
+        context.formatDate(transaction.bookingDate),
+        if (transaction.counterparty.isNotEmpty) transaction.purpose,
+      ]),
+      amountMinor: transaction.amountMinor,
+      tone: AmountTone.incomeOnly,
+      showPlus: true,
     );
   }
 }
@@ -470,41 +413,29 @@ class _ReviewStep extends ConsumerWidget {
         }
         final isDuplicate = row.status == ImportRowStatus.duplicate;
         final category = tree[transaction.categoryId];
-        return Opacity(
-          opacity: isDuplicate ? 0.5 : 1,
-          child: ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: CategoryAvatar(category, size: 36),
-            title: Text(
-              transaction.title.isEmpty
-                  ? l10n.noDescription
-                  : transaction.title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            subtitle: Text(
-              [
-                context.formatDate(transaction.bookingDate),
-                if (isDuplicate)
-                  l10n.alreadyImported
-                else if (category == null)
-                  l10n.uncategorized
-                else ...[
-                  tree.pathOf(category.id),
-                  if (transaction.categorySource == CategorySource.learned)
-                    l10n.suggested,
-                ],
-              ].join(' · '),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            trailing: AmountText(
-              transaction.amountMinor,
-              tone: AmountTone.incomeOnly,
-              showPlus: true,
-              style: theme.textTheme.titleSmall,
-            ),
-          ),
+        return PandaListRow(
+          enabled: !isDuplicate,
+          leading: CategoryAvatar(category, size: 36),
+          title: transaction.title.isEmpty
+              ? l10n.noDescription
+              : transaction.title,
+          subtitle: joinDetails([
+            context.formatDate(transaction.bookingDate),
+            if (isDuplicate)
+              l10n.alreadyImported
+            else if (category == null)
+              l10n.uncategorized
+            else
+              tree.pathOf(category.id),
+            if (!isDuplicate &&
+                category != null &&
+                transaction.categorySource == CategorySource.learned)
+              l10n.suggested,
+          ]),
+          subtitleMaxLines: 2,
+          amountMinor: transaction.amountMinor,
+          tone: AmountTone.incomeOnly,
+          showPlus: true,
         );
       },
     );
@@ -530,7 +461,7 @@ class _Notice extends StatelessWidget {
       padding: const EdgeInsets.all(Insets.md),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.08),
-        borderRadius: const BorderRadius.all(Radius.circular(12)),
+        borderRadius: const BorderRadius.all(Radius.circular(Radii.sm)),
       ),
       child: Row(
         children: [
