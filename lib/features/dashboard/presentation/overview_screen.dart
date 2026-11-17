@@ -5,14 +5,16 @@ import 'package:go_router/go_router.dart';
 import 'package:pandabudget/app/panda_logo.dart';
 import 'package:pandabudget/app/routes.dart';
 import 'package:pandabudget/core/l10n/l10n.dart';
+import 'package:pandabudget/core/money/money_providers.dart';
 import 'package:pandabudget/core/theme/panda_colors.dart';
 import 'package:pandabudget/core/theme/spacing.dart';
 import 'package:pandabudget/core/time/clock.dart';
 import 'package:pandabudget/core/time/dates.dart';
+import 'package:pandabudget/core/widgets/page_widgets.dart';
 import 'package:pandabudget/core/widgets/panda_widgets.dart';
+import 'package:pandabudget/features/accounts/domain/account.dart';
 import 'package:pandabudget/features/accounts/presentation/account_providers.dart';
 import 'package:pandabudget/features/analysis/domain/analysis.dart';
-import 'package:pandabudget/features/analysis/presentation/budget_status_view.dart';
 import 'package:pandabudget/features/categories/presentation/category_widgets.dart';
 import 'package:pandabudget/features/planning/domain/forecast.dart';
 import 'package:pandabudget/features/planning/domain/planned_item.dart';
@@ -76,84 +78,104 @@ class OverviewScreen extends ConsumerWidget {
 
     final isFresh = balances.isEmpty || !hasPlan;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            if (MediaQuery.sizeOf(context).width < Breakpoints.wide) ...[
-              const PandaLogo(size: 32),
-              gapMd,
-            ],
-            Text(l10n.appTitle),
-          ],
+    final money = ref.money(context);
+    final isWide = MediaQuery.sizeOf(context).width >= Breakpoints.wide;
+
+    Widget figures(
+      String firstLabel,
+      int first,
+      String secondLabel,
+      int second,
+    ) => Row(
+      children: [
+        Expanded(
+          child: Figure(label: firstLabel, amountMinor: first),
         ),
-      ),
-      body: PageBody(
-        bottomPadding: Insets.xl,
+        gapMd,
+        Expanded(
+          child: Figure(label: secondLabel, amountMinor: second),
+        ),
+      ],
+    );
+
+    final header = InkWell(
+      onTap: () => context.go(Routes.analysis),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(top: Insets.sm, bottom: Insets.md),
-            child: Text(
-              context.formatMonth(month),
-              style: theme.textTheme.headlineSmall,
+          PageHeader(
+            title: context.formatMonth(month),
+            leading: isWide ? null : const PandaLogo(size: 32),
+            caption: l10n.overviewActual,
+            figure: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: AmountText(
+                summary.netMinor,
+                tone: AmountTone.signed,
+                showPlus: true,
+                style: theme.textTheme.displayLarge,
+              ),
             ),
           ),
-          if (isFresh) ...[
-            _GettingStarted(
-              hasAccount: balances.isNotEmpty,
-              hasTransactions: transactions.isNotEmpty || uncategorized > 0,
-              hasPlan: hasPlan,
-            ),
-            gapMd,
-          ],
-          if (uncategorized > 0) ...[
-            _UncategorizedNotice(count: uncategorized),
-            gapMd,
-          ],
-          AdaptiveColumns(
-            children: [
-              PandaCard(
-                onTap: () => context.go(Routes.analysis),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _CardTitle(l10n.overviewActual, Icons.donut_large_outlined),
-                    gapMd,
-                    Figure(
-                      label: l10n.net,
-                      amountMinor: summary.netMinor,
-                      tone: AmountTone.signed,
-                      showPlus: true,
-                      large: true,
-                    ),
-                    gapMd,
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Figure(
-                            label: l10n.income,
-                            amountMinor: summary.incomeMinor,
-                          ),
-                        ),
-                        gapMd,
-                        Expanded(
-                          child: Figure(
-                            label: l10n.spent,
-                            amountMinor: summary.expenseMinor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+          gapMd,
+          figures(
+            l10n.income,
+            summary.incomeMinor,
+            l10n.spent,
+            summary.expenseMinor,
+          ),
+        ],
+      ),
+    );
+
+    return Scaffold(
+      body: SafeArea(
+        bottom: false,
+        child: PageBody(
+          bottomPadding: Insets.xl,
+          children: [
+            // On wide windows the figures would otherwise drift far apart.
+            Align(
+              alignment: Alignment.centerLeft,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 560),
+                child: header,
               ),
-              PandaCard(
-                onTap: () => context.go(Routes.planning),
-                child: Column(
+            ),
+            if (isFresh) ...[
+              gapLg,
+              _GettingStarted(
+                hasAccount: balances.isNotEmpty,
+                hasTransactions: transactions.isNotEmpty || uncategorized > 0,
+                hasPlan: hasPlan,
+              ),
+            ],
+            if (uncategorized > 0) ...[
+              gapMd,
+              ActionLink(
+                icon: Icons.label_off_outlined,
+                label: uncategorized >= 100
+                    ? l10n.uncategorizedMany
+                    : l10n.uncategorizedCount(uncategorized),
+                onTap: () {
+                  ref
+                      .read(transactionFilterProvider.notifier)
+                      .set(const TransactionFilter(uncategorizedOnly: true));
+                  context.go(Routes.transactions);
+                },
+              ),
+            ],
+            AdaptiveColumns(
+              spacing: Insets.lg,
+              children: [
+                Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _CardTitle(l10n.overviewPlan, Icons.event_note_outlined),
-                    gapMd,
+                    SectionHeader(
+                      l10n.overviewPlan,
+                      onTap: () => context.go(Routes.planning),
+                    ),
                     Figure(
                       label: l10n.savingsPotential,
                       amountMinor: planMonth?.savingsPotentialMinor ?? 0,
@@ -162,64 +184,35 @@ class OverviewScreen extends ConsumerWidget {
                       large: true,
                     ),
                     gapMd,
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Figure(
-                            label: l10n.savingForGoals,
-                            amountMinor: planMonth?.goalContributionsMinor ?? 0,
-                          ),
-                        ),
-                        gapMd,
-                        Expanded(
-                          child: Figure(
-                            label: l10n.freeAfterGoals,
-                            amountMinor: planMonth?.freeMinor ?? 0,
-                          ),
-                        ),
-                      ],
+                    figures(
+                      l10n.savingForGoals,
+                      planMonth?.goalContributionsMinor ?? 0,
+                      l10n.freeAfterGoals,
+                      planMonth?.freeMinor ?? 0,
                     ),
                   ],
                 ),
-              ),
-              if (balances.isNotEmpty)
-                PandaCard(
-                  child: Column(
+                if (balances.isNotEmpty)
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _CardTitle(l10n.accounts, Icons.account_balance_outlined),
-                      gapSm,
-                      for (final balance in balances)
-                        _Line(
-                          leading: ColorAvatar(
-                            color: Color(balance.account.colorValue),
-                            icon: accountKindIcon(balance.account.kind),
-                            size: 32,
-                          ),
-                          title: balance.account.name,
-                          amountMinor: balance.balanceMinor,
+                      SectionHeader(
+                        l10n.accounts,
+                        trailing: AmountText(
+                          balances.map((b) => b.balanceMinor).sum,
+                          style: theme.textTheme.titleMedium,
                         ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: Insets.sm),
-                        child: Divider(),
                       ),
-                      _Line(
-                        title: l10n.total,
-                        amountMinor: balances.map((b) => b.balanceMinor).sum,
-                        emphasised: true,
-                      ),
+                      _AccountGrid(balances),
                     ],
                   ),
-                ),
-              if (upcoming.isNotEmpty)
-                PandaCard(
-                  child: Column(
+                if (upcoming.isNotEmpty)
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _CardTitle(l10n.overviewUpcoming, Icons.schedule),
-                      gapSm,
+                      SectionHeader(l10n.overviewUpcoming),
                       for (final occurrence in upcoming.take(6))
-                        _Line(
+                        PandaListRow(
                           title: occurrence.item.name,
                           subtitle: context.formatShortDate(occurrence.date),
                           amountMinor: occurrence.signedAmountMinor,
@@ -228,190 +221,82 @@ class OverviewScreen extends ConsumerWidget {
                         ),
                     ],
                   ),
-                ),
-              if (statuses.isNotEmpty)
-                PandaCard(
-                  onTap: () => context.go(Routes.analysis),
-                  child: Column(
+                if (statuses.isNotEmpty)
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _CardTitle(l10n.tabBudgets, Icons.pie_chart_outline),
-                      for (final status in statuses.take(4)) ...[
-                        gapMd,
-                        BudgetStatusView(status: status),
-                      ],
+                      SectionHeader(
+                        l10n.tabBudgets,
+                        onTap: () => context.go(Routes.analysis),
+                      ),
+                      for (final status in statuses.take(4))
+                        BudgetRow(
+                          title: status.budget.name,
+                          detail:
+                              '${money.format(status.spentMinor)} '
+                              '${l10n.ofAmount} '
+                              '${money.format(status.limitMinor)}',
+                          progress: status.ratio,
+                          color: Color(status.budget.colorValue),
+                        ),
                     ],
                   ),
-                ),
-              if (goals.isNotEmpty)
-                PandaCard(
-                  onTap: () => context.go(Routes.planning),
-                  child: Column(
+                if (goals.isNotEmpty)
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _CardTitle(l10n.tabGoals, Icons.flag_outlined),
-                      for (final goal in goals.take(4)) ...[
-                        gapMd,
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                goal.name,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            Text(
-                              '${(goal.progress * 100).round()} %',
-                              style: theme.textTheme.labelLarge,
-                            ),
-                          ],
-                        ),
-                        gapSm,
-                        UsageBar(
-                          value: goal.progress,
+                      SectionHeader(
+                        l10n.tabGoals,
+                        onTap: () => context.go(Routes.planning),
+                      ),
+                      for (final goal in goals.take(4))
+                        BudgetRow(
+                          title: goal.name,
+                          detail: '${(goal.progress * 100).round()} %',
+                          progress: goal.progress,
                           color: Color(goal.colorValue),
+                          note: forecast?.goalPlans[goal.id]?.isOnTrack == false
+                              ? l10n.goalBehind
+                              : null,
+                          noteColor: context.financeColors.warning,
                         ),
-                        if (forecast?.goalPlans[goal.id] case final plan?
-                            when !plan.isOnTrack) ...[
-                          gapXs,
-                          Text(
-                            l10n.goalBehind,
-                            style: theme.textTheme.labelMedium?.copyWith(
-                              color: context.financeColors.warning,
-                            ),
-                          ),
-                        ],
-                      ],
                     ],
-                  ),
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CardTitle extends StatelessWidget {
-  const _CardTitle(this.title, this.icon);
-
-  final String title;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: theme.colorScheme.onSurfaceVariant),
-        gapSm,
-        Expanded(
-          child: Text(
-            title,
-            style: theme.textTheme.titleSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _Line extends StatelessWidget {
-  const _Line({
-    required this.title,
-    required this.amountMinor,
-    this.leading,
-    this.subtitle,
-    this.tone = AmountTone.plain,
-    this.showPlus = false,
-    this.emphasised = false,
-  });
-
-  final String title;
-  final int amountMinor;
-  final Widget? leading;
-  final String? subtitle;
-  final AmountTone tone;
-  final bool showPlus;
-  final bool emphasised;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final style = emphasised
-        ? theme.textTheme.titleMedium
-        : theme.textTheme.bodyLarge;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        children: [
-          if (leading != null) ...[leading!, gapMd],
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: style,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (subtitle != null)
-                  Text(
-                    subtitle!,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
                   ),
               ],
             ),
-          ),
-          gapMd,
-          AmountText(amountMinor, tone: tone, showPlus: showPlus, style: style),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
-class _UncategorizedNotice extends ConsumerWidget {
-  const _UncategorizedNotice({required this.count});
+/// Accounts as tiles, two per row.
+class _AccountGrid extends StatelessWidget {
+  const _AccountGrid(this.balances);
 
-  final int count;
+  final List<AccountBalance> balances;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = context.l10n;
-    final theme = Theme.of(context);
-    return PandaCard(
-      padding: const EdgeInsets.symmetric(
-        horizontal: Insets.md,
-        vertical: Insets.sm,
-      ),
-      onTap: () {
-        ref
-            .read(transactionFilterProvider.notifier)
-            .set(const TransactionFilter(uncategorizedOnly: true));
-        context.go(Routes.transactions);
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = (constraints.maxWidth - Insets.sm) / 2;
+        return Wrap(
+          spacing: Insets.sm,
+          runSpacing: Insets.sm,
+          children: [
+            for (final balance in balances)
+              SizedBox(
+                width: width,
+                child: AccountTile(
+                  name: balance.account.name,
+                  balanceMinor: balance.balanceMinor,
+                ),
+              ),
+          ],
+        );
       },
-      child: Row(
-        children: [
-          Icon(Icons.label_off_outlined, color: theme.colorScheme.primary),
-          gapMd,
-          Expanded(
-            child: Text(
-              count >= 100
-                  ? l10n.uncategorizedMany
-                  : l10n.uncategorizedCount(count),
-            ),
-          ),
-          const Icon(Icons.chevron_right),
-        ],
-      ),
     );
   }
 }
@@ -432,52 +317,40 @@ class _GettingStarted extends StatelessWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
 
-    Widget step(bool done, String title, String subtitle, VoidCallback onTap) =>
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: Icon(
-            done ? Icons.check_circle : Icons.radio_button_unchecked,
-            color: done ? theme.colorScheme.primary : theme.colorScheme.outline,
-          ),
-          title: Text(title),
-          subtitle: Text(subtitle),
-          trailing: const Icon(Icons.chevron_right),
+    Widget step(bool done, String title, String caption, VoidCallback onTap) =>
+        ActionLink(
+          icon: done ? Icons.check_circle : Icons.radio_button_unchecked,
+          label: title,
+          caption: caption,
           onTap: onTap,
         );
 
-    return PandaCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(l10n.welcomeTitle, style: theme.textTheme.titleLarge),
-          gapXs,
-          Text(
-            l10n.welcomeMessage,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          gapMd,
-          step(
-            hasAccount,
-            l10n.stepAccountTitle,
-            l10n.stepAccountMessage,
-            () => context.push(Routes.accountEdit()),
-          ),
-          step(
-            hasTransactions,
-            l10n.stepImportTitle,
-            l10n.stepImportMessage,
-            () => context.push(Routes.importWizard),
-          ),
-          step(
-            hasPlan,
-            l10n.stepPlanTitle,
-            l10n.stepPlanMessage,
-            () => context.push(Routes.plannedItemEdit()),
-          ),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l10n.welcomeTitle, style: theme.textTheme.titleLarge),
+        gapXs,
+        Text(l10n.welcomeMessage, style: theme.textTheme.bodySmall),
+        gapSm,
+        step(
+          hasAccount,
+          l10n.stepAccountTitle,
+          l10n.stepAccountMessage,
+          () => context.push(Routes.accountEdit()),
+        ),
+        step(
+          hasTransactions,
+          l10n.stepImportTitle,
+          l10n.stepImportMessage,
+          () => context.push(Routes.importWizard),
+        ),
+        step(
+          hasPlan,
+          l10n.stepPlanTitle,
+          l10n.stepPlanMessage,
+          () => context.push(Routes.plannedItemEdit()),
+        ),
+      ],
     );
   }
 }

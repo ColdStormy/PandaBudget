@@ -67,23 +67,35 @@ class PandaCard extends StatelessWidget {
 }
 
 /// Title above a group of content, with an optional action on the right.
+///
+/// With [onTap] the whole header opens something and ends in an accent
+/// chevron.
 class SectionHeader extends StatelessWidget {
-  const SectionHeader(this.title, {this.trailing, super.key});
+  const SectionHeader(this.title, {this.trailing, this.onTap, super.key});
 
   final String title;
   final Widget? trailing;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.only(top: Insets.lg, bottom: Insets.sm),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(title, style: Theme.of(context).textTheme.titleMedium),
-          ),
-          ?trailing,
-        ],
+      child: InkWell(
+        onTap: onTap,
+        child: Row(
+          children: [
+            Expanded(child: Text(title, style: theme.textTheme.titleMedium)),
+            ?trailing,
+            if (onTap != null)
+              Icon(
+                Icons.chevron_right,
+                size: 20,
+                color: theme.colorScheme.primary,
+              ),
+          ],
+        ),
       ),
     );
   }

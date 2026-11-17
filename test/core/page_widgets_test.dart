@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pandabudget/core/theme/panda_colors.dart';
 import 'package:pandabudget/core/widgets/page_widgets.dart';
+import 'package:pandabudget/core/widgets/panda_widgets.dart';
 
 import '../helpers/pump_widget.dart';
 
@@ -118,6 +119,40 @@ void main() {
         .toList();
     expect(bars[0].color, _primary(tester));
     expect(bars[1].color, FinanceColors.light.expense);
+  });
+
+  testWidgets('BudgetRow shows its note', (tester) async {
+    await pumpWidgetInApp(
+      tester,
+      const BudgetRow(
+        title: 'Holiday',
+        detail: '40 %',
+        progress: 0.4,
+        note: 'Behind plan',
+      ),
+    );
+
+    expect(find.text('Behind plan'), findsOneWidget);
+  });
+
+  testWidgets('SectionHeader opens something when it has onTap', (
+    tester,
+  ) async {
+    var taps = 0;
+    await pumpWidgetInApp(
+      tester,
+      SectionHeader('Budgets', onTap: () => taps++),
+    );
+
+    expect(find.byIcon(Icons.chevron_right), findsOneWidget);
+    await tester.tap(find.text('Budgets'));
+    expect(taps, 1);
+  });
+
+  testWidgets('SectionHeader without onTap has no chevron', (tester) async {
+    await pumpWidgetInApp(tester, const SectionHeader('Budgets'));
+
+    expect(find.byIcon(Icons.chevron_right), findsNothing);
   });
 
   testWidgets('AccountTile colours a negative balance', (tester) async {

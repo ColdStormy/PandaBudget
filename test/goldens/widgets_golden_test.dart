@@ -66,11 +66,18 @@ void main() {
               tone: AmountTone.incomeOnly,
               showPlus: true,
             ),
-            const SectionHeader('Budgets'),
+            SectionHeader('Budgets', onTap: () {}),
             const BudgetRow(
               title: 'Groceries',
               detail: '€320 of €400',
               progress: 0.8,
+            ),
+            const BudgetRow(
+              title: 'Holiday',
+              detail: '40 %',
+              progress: 0.4,
+              note: 'Behind plan',
+              noteColor: Color(0xFFB57A14),
             ),
             const BudgetRow(
               title: 'Dining out',

@@ -5,10 +5,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pandabudget/database/demo_data.dart';
 import 'package:pandabudget/features/settings/data/drift_settings_repository.dart';
 import 'package:pandabudget/features/settings/domain/app_settings.dart';
 
-import '../helpers/demo_data.dart';
 import '../helpers/pump_app.dart';
 import '../helpers/test_database.dart';
 

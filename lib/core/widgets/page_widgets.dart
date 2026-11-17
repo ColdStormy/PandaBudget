@@ -222,6 +222,8 @@ class BudgetRow extends StatelessWidget {
     required this.detail,
     required this.progress,
     this.color,
+    this.note,
+    this.noteColor,
     super.key,
   });
 
@@ -231,6 +233,10 @@ class BudgetRow extends StatelessWidget {
   /// Share used; values above 1 turn the bar red.
   final double progress;
   final Color? color;
+
+  /// Small line below the bar, for example "Behind plan".
+  final String? note;
+  final Color? noteColor;
 
   @override
   Widget build(BuildContext context) {
@@ -256,6 +262,10 @@ class BudgetRow extends StatelessWidget {
           ),
           gapSm,
           UsageBar(value: progress, color: color),
+          if (note != null) ...[
+            gapXs,
+            Text(note!, style: text.labelMedium?.copyWith(color: noteColor)),
+          ],
         ],
       ),
     );
