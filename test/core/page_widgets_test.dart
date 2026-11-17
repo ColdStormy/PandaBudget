@@ -190,6 +190,22 @@ void main() {
     expect(find.text('Behind plan'), findsOneWidget);
   });
 
+  testWidgets('BudgetRow can be tapped', (tester) async {
+    var taps = 0;
+    await pumpWidgetInApp(
+      tester,
+      BudgetRow(
+        title: 'Groceries',
+        detail: '€10 of €100',
+        progress: 0.1,
+        onTap: () => taps++,
+      ),
+    );
+
+    await tester.tap(find.text('Groceries'));
+    expect(taps, 1);
+  });
+
   testWidgets('SectionHeader opens something when it has onTap', (
     tester,
   ) async {

@@ -8,6 +8,7 @@ import 'package:pandabudget/core/theme/panda_colors.dart';
 import 'package:pandabudget/core/theme/spacing.dart';
 import 'package:pandabudget/core/time/clock.dart';
 import 'package:pandabudget/core/time/dates.dart';
+import 'package:pandabudget/core/widgets/page_widgets.dart';
 import 'package:pandabudget/core/widgets/panda_widgets.dart';
 import 'package:pandabudget/features/planning/domain/planned_item.dart';
 import 'package:pandabudget/features/planning/presentation/planning_providers.dart';
@@ -19,6 +20,7 @@ class PlannedItemsTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final today = dateOnly(ref.watch(clockProvider)());
+    void add() => context.push(Routes.plannedItemEdit());
 
     return AsyncView(
       value: ref.watch(plannedItemsProvider),
@@ -28,6 +30,10 @@ class PlannedItemsTab extends ConsumerWidget {
             icon: Icons.repeat,
             title: l10n.plannedEmptyTitle,
             message: l10n.plannedEmptyMessage,
+            action: FilledButton(
+              onPressed: add,
+              child: Text(l10n.addPlannedItem),
+            ),
           );
         }
         List<PlannedItem> of(PlannedKind kind) =>
@@ -45,33 +51,33 @@ class PlannedItemsTab extends ConsumerWidget {
         return PageBody(
           children: [
             gapSm,
-            PandaCard(
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Figure(
-                      label: l10n.avgMonthlyIncome,
-                      amountMinor: monthly(incomes),
-                    ),
+            Row(
+              children: [
+                Expanded(
+                  child: Figure(
+                    label: l10n.avgMonthlyIncome,
+                    amountMinor: monthly(incomes),
                   ),
-                  gapMd,
-                  Expanded(
-                    child: Figure(
-                      label: l10n.avgMonthlyPayments,
-                      amountMinor: monthly(expenses),
-                    ),
+                ),
+                gapMd,
+                Expanded(
+                  child: Figure(
+                    label: l10n.avgMonthlyPayments,
+                    amountMinor: monthly(expenses),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
             if (incomes.isNotEmpty) ...[
               SectionHeader(l10n.plannedIncome),
-              _ItemCard(items: incomes, today: today),
+              for (final item in incomes) _ItemRow(item: item, today: today),
             ],
             if (expenses.isNotEmpty) ...[
               SectionHeader(l10n.plannedPayments),
-              _ItemCard(items: expenses, today: today),
+              for (final item in expenses) _ItemRow(item: item, today: today),
             ],
+            gapSm,
+            AddLink(label: l10n.addPlannedItem, onPressed: add),
           ],
         );
       },
@@ -79,63 +85,41 @@ class PlannedItemsTab extends ConsumerWidget {
   }
 }
 
-class _ItemCard extends StatelessWidget {
-  const _ItemCard({required this.items, required this.today});
+class _ItemRow extends StatelessWidget {
+  const _ItemRow({required this.item, required this.today});
 
-  final List<PlannedItem> items;
+  final PlannedItem item;
   final DateTime today;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final theme = Theme.of(context);
     final finance = context.financeColors;
+    final next = item.nextOccurrence(today);
+    final isIncome = item.kind == PlannedKind.income;
 
-    return Card(
-      child: Column(
-        children: [
-          for (final (index, item) in items.indexed) ...[
-            if (index > 0) const Divider(indent: Insets.md),
-            () {
-              final next = item.nextOccurrence(today);
-              final isIncome = item.kind == PlannedKind.income;
-              return ListTile(
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: Insets.md,
-                  vertical: Insets.xs,
-                ),
-                enabled: item.isActive,
-                leading: ColorAvatar(
-                  color: isIncome
-                      ? finance.income
-                      : theme.colorScheme.secondary,
-                  icon: item.isRecurring
-                      ? Icons.repeat
-                      : Icons.looks_one_outlined,
-                ),
-                title: Text(item.name),
-                subtitle: Text(
-                  [
-                    recurrenceLabel(l10n, item),
-                    if (!item.isActive)
-                      l10n.paused
-                    else if (next != null)
-                      l10n.nextOn(context.formatDate(next))
-                    else
-                      l10n.ended,
-                  ].join(' · '),
-                ),
-                trailing: AmountText(
-                  item.amountMinor,
-                  tone: isIncome ? AmountTone.incomeOnly : AmountTone.plain,
-                  style: theme.textTheme.titleMedium,
-                ),
-                onTap: () => context.push(Routes.plannedItemEdit(item.id)),
-              );
-            }(),
-          ],
-        ],
+    return PandaListRow(
+      enabled: item.isActive,
+      leading: ColorAvatar(
+        color: isIncome
+            ? finance.income
+            : Theme.of(context).colorScheme.secondary,
+        icon: item.isRecurring ? Icons.repeat : Icons.looks_one_outlined,
       ),
+      title: item.name,
+      subtitle: [
+        recurrenceLabel(l10n, item),
+        if (!item.isActive)
+          l10n.paused
+        else if (next != null)
+          l10n.nextOn(context.formatDate(next))
+        else
+          l10n.ended,
+      ].join(' · '),
+      subtitleMaxLines: 2,
+      amountMinor: item.amountMinor,
+      tone: isIncome ? AmountTone.incomeOnly : AmountTone.plain,
+      onTap: () => context.push(Routes.plannedItemEdit(item.id)),
     );
   }
 }

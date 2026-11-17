@@ -7,6 +7,7 @@ import 'package:pandabudget/core/theme/panda_colors.dart';
 import 'package:pandabudget/core/theme/spacing.dart';
 import 'package:pandabudget/core/time/year_month.dart';
 import 'package:pandabudget/core/widgets/charts.dart';
+import 'package:pandabudget/core/widgets/page_widgets.dart';
 import 'package:pandabudget/core/widgets/panda_widgets.dart';
 import 'package:pandabudget/features/planning/domain/forecast.dart';
 import 'package:pandabudget/features/planning/presentation/planning_providers.dart';
@@ -59,18 +60,14 @@ class _ForecastTabState extends ConsumerState<ForecastTab> {
             gapSm,
             AdaptiveColumns(
               columns: forecast.years.length.clamp(1, 3),
+              spacing: Insets.lg,
               children: [
-                for (final year in forecast.years) _YearCard(year: year),
+                for (final year in forecast.years) _YearBlock(year: year),
               ],
             ),
             SectionHeader(l10n.forecastChartTitle),
-            PandaCard(
-              padding: const EdgeInsets.fromLTRB(
-                Insets.md,
-                Insets.lg,
-                Insets.lg,
-                Insets.md,
-              ),
+            Padding(
+              padding: const EdgeInsets.only(top: Insets.sm),
               child: MonthBarChart(
                 months: months,
                 selected: selected,
@@ -97,7 +94,7 @@ class _ForecastTabState extends ConsumerState<ForecastTab> {
               ),
             ),
             gapSm,
-            _MonthCard(month: month, forecast: forecast),
+            _MonthDetail(month: month, forecast: forecast),
           ],
         );
       },
@@ -105,8 +102,9 @@ class _ForecastTabState extends ConsumerState<ForecastTab> {
   }
 }
 
-class _YearCard extends StatelessWidget {
-  const _YearCard({required this.year});
+/// One calendar year of the forecast: year, balance, income and expenses.
+class _YearBlock extends StatelessWidget {
+  const _YearBlock({required this.year});
 
   final YearForecast year;
 
@@ -118,57 +116,53 @@ class _YearCard extends StatelessWidget {
     final last = year.months.last.month;
     final isFullYear = year.months.length == 12;
 
-    return PandaCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text('${year.year}', style: theme.textTheme.titleMedium),
-              gapSm,
-              if (!isFullYear)
-                Expanded(
-                  child: Caption(
-                    '${context.formatMonthName(first)} – '
-                    '${context.formatMonthName(last)}',
-                  ),
-                ),
-            ],
-          ),
-          gapMd,
-          Figure(
-            label: l10n.yearlyPlus,
-            amountMinor: year.savingsPotentialMinor,
-            tone: AmountTone.signed,
-            showPlus: true,
-            large: true,
-          ),
-          gapMd,
-          Row(
-            children: [
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text('${year.year}', style: theme.textTheme.titleMedium),
+            gapSm,
+            if (!isFullYear)
               Expanded(
-                child: Figure(
-                  label: l10n.income,
-                  amountMinor: year.incomeMinor,
+                child: Caption(
+                  '${context.formatMonthName(first)} – '
+                  '${context.formatMonthName(last)}',
                 ),
               ),
-              gapMd,
-              Expanded(
-                child: Figure(
-                  label: l10n.expenses,
-                  amountMinor: year.expensesMinor,
-                ),
+          ],
+        ),
+        gapMd,
+        Figure(
+          label: l10n.yearlyPlus,
+          amountMinor: year.savingsPotentialMinor,
+          tone: AmountTone.signed,
+          showPlus: true,
+          large: true,
+        ),
+        gapMd,
+        Row(
+          children: [
+            Expanded(
+              child: Figure(label: l10n.income, amountMinor: year.incomeMinor),
+            ),
+            gapMd,
+            Expanded(
+              child: Figure(
+                label: l10n.expenses,
+                amountMinor: year.expensesMinor,
               ),
-            ],
-          ),
-        ],
-      ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
 
-class _MonthCard extends StatelessWidget {
-  const _MonthCard({required this.month, required this.forecast});
+/// Everything planned for the selected month, grouped by kind.
+class _MonthDetail extends StatelessWidget {
+  const _MonthDetail({required this.month, required this.forecast});
 
   final MonthForecast month;
   final Forecast forecast;
@@ -177,173 +171,114 @@ class _MonthCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final muted = theme.textTheme.bodyMedium?.copyWith(
-      color: theme.colorScheme.onSurfaceVariant,
-    );
 
-    Widget line(
+    Widget row(
       String label,
       int amount, {
       String? detail,
       bool minus = false,
-    }) => Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
-                if (detail != null)
-                  Text(
-                    detail,
-                    style: muted,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-              ],
-            ),
-          ),
-          gapMd,
-          AmountText(
-            minus ? -amount : amount,
-            style: theme.textTheme.bodyLarge,
-          ),
-        ],
-      ),
+    }) => PandaListRow(
+      indent: true,
+      title: label,
+      subtitle: detail,
+      amountMinor: minus ? -amount : amount,
     );
 
     Widget group(
       String title,
       int total,
-      List<Widget> lines, {
+      List<Widget> rows, {
       bool minus = false,
     }) => Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Expanded(child: Text(title, style: theme.textTheme.titleSmall)),
-            AmountText(
-              minus ? -total : total,
-              style: theme.textTheme.titleSmall,
-            ),
-          ],
-        ),
-        if (lines.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(left: Insets.md, top: Insets.xs),
-            child: DefaultTextStyle.merge(
-              style: muted,
-              child: Column(children: lines),
-            ),
+        SectionHeader(
+          title,
+          trailing: AmountText(
+            minus ? -total : total,
+            style: theme.textTheme.titleMedium,
           ),
+        ),
+        ...rows,
       ],
     );
 
-    return PandaCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Figure(
-            label: l10n.savingsPotentialIn(context.formatMonth(month.month)),
-            amountMinor: month.savingsPotentialMinor,
-            tone: AmountTone.signed,
-            showPlus: true,
-            large: true,
-          ),
-          gapLg,
-          group(l10n.income, month.incomeMinor, [
-            for (final o in month.incomes)
-              line(
-                o.item.name,
-                o.item.amountMinor,
-                detail: context.formatShortDate(o.date),
-              ),
-          ]),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: Insets.md),
-            child: Divider(),
-          ),
-          group(l10n.fixedPayments, month.fixedExpensesMinor, minus: true, [
-            for (final o in month.fixedExpenses)
-              line(
-                o.item.name,
-                o.item.amountMinor,
-                detail: context.formatShortDate(o.date),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Figure(
+          label: l10n.savingsPotentialIn(context.formatMonth(month.month)),
+          amountMinor: month.savingsPotentialMinor,
+          tone: AmountTone.signed,
+          showPlus: true,
+          large: true,
+        ),
+        group(l10n.income, month.incomeMinor, [
+          for (final o in month.incomes)
+            row(
+              o.item.name,
+              o.item.amountMinor,
+              detail: context.formatShortDate(o.date),
+            ),
+        ]),
+        group(l10n.fixedPayments, month.fixedExpensesMinor, minus: true, [
+          for (final o in month.fixedExpenses)
+            row(
+              o.item.name,
+              o.item.amountMinor,
+              detail: context.formatShortDate(o.date),
+              minus: true,
+            ),
+        ]),
+        if (month.budgets.isNotEmpty)
+          group(l10n.tabBudgets, month.budgetedMinor, minus: true, [
+            for (final allocation in month.budgets)
+              row(
+                allocation.budget.name,
+                allocation.reservedMinor,
+                detail: allocation.isExceededByPlan
+                    ? l10n.budgetExceededByPlan
+                    : null,
                 minus: true,
               ),
           ]),
-          if (month.budgets.isNotEmpty) ...[
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: Insets.md),
-              child: Divider(),
+        if (month.goalContributions.isNotEmpty) ...[
+          group(l10n.savingForGoals, month.goalContributionsMinor, [
+            for (final MapEntry(key: goalId, value: amount)
+                in month.goalContributions.entries)
+              row(forecast.goalPlans[goalId]?.goal.name ?? '', amount),
+          ]),
+          SectionHeader(
+            l10n.freeAfterGoals,
+            trailing: AmountText(
+              month.freeMinor,
+              tone: AmountTone.signed,
+              style: theme.textTheme.titleMedium,
             ),
-            group(l10n.tabBudgets, month.budgetedMinor, minus: true, [
-              for (final allocation in month.budgets)
-                line(
-                  allocation.budget.name,
-                  allocation.reservedMinor,
-                  detail: allocation.isExceededByPlan
-                      ? l10n.budgetExceededByPlan
-                      : null,
-                  minus: true,
-                ),
-            ]),
-          ],
-          if (month.goalContributions.isNotEmpty) ...[
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: Insets.md),
-              child: Divider(),
+          ),
+        ],
+        if (month.reserveMinor > 0) ...[
+          gapLg,
+          Container(
+            padding: const EdgeInsets.all(Insets.md),
+            decoration: BoxDecoration(
+              color: context.financeColors.warning.withValues(alpha: 0.1),
+              borderRadius: const BorderRadius.all(Radius.circular(Radii.sm)),
             ),
-            group(l10n.savingForGoals, month.goalContributionsMinor, [
-              for (final MapEntry(key: goalId, value: amount)
-                  in month.goalContributions.entries)
-                line(forecast.goalPlans[goalId]?.goal.name ?? '', amount),
-            ]),
-            gapMd,
-            Row(
+            child: Row(
               children: [
-                Expanded(
-                  child: Text(
-                    l10n.freeAfterGoals,
-                    style: theme.textTheme.titleSmall,
-                  ),
+                Icon(
+                  Icons.shield_outlined,
+                  size: 20,
+                  color: context.financeColors.warning,
                 ),
-                AmountText(
-                  month.freeMinor,
-                  tone: AmountTone.signed,
-                  style: theme.textTheme.titleSmall,
-                ),
+                gapMd,
+                Expanded(child: _ReserveText(amountMinor: month.reserveMinor)),
               ],
             ),
-          ],
-          if (month.reserveMinor > 0) ...[
-            gapLg,
-            Container(
-              padding: const EdgeInsets.all(Insets.md),
-              decoration: BoxDecoration(
-                color: context.financeColors.warning.withValues(alpha: 0.1),
-                borderRadius: const BorderRadius.all(Radius.circular(12)),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.shield_outlined,
-                    size: 20,
-                    color: context.financeColors.warning,
-                  ),
-                  gapMd,
-                  Expanded(
-                    child: _ReserveText(amountMinor: month.reserveMinor),
-                  ),
-                ],
-              ),
-            ),
-          ],
+          ),
         ],
-      ),
+      ],
     );
   }
 }

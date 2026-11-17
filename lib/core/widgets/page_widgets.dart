@@ -246,6 +246,7 @@ class BudgetRow extends StatelessWidget {
     this.color,
     this.note,
     this.noteColor,
+    this.onTap,
     super.key,
   });
 
@@ -259,36 +260,40 @@ class BudgetRow extends StatelessWidget {
   /// Small line below the bar, for example "Behind plan".
   final String? note;
   final Color? noteColor;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: Insets.sm),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  title,
-                  style: text.bodyLarge,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: Insets.sm),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: text.bodyLarge,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-              ),
-              gapMd,
-              Text(detail, style: text.labelMedium),
+                gapMd,
+                Text(detail, style: text.labelMedium),
+              ],
+            ),
+            gapSm,
+            UsageBar(value: progress, color: color),
+            if (note != null) ...[
+              gapXs,
+              Text(note!, style: text.labelMedium?.copyWith(color: noteColor)),
             ],
-          ),
-          gapSm,
-          UsageBar(value: progress, color: color),
-          if (note != null) ...[
-            gapXs,
-            Text(note!, style: text.labelMedium?.copyWith(color: noteColor)),
           ],
-        ],
+        ),
       ),
     );
   }
