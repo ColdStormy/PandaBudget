@@ -158,7 +158,7 @@ class PickerField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      borderRadius: const BorderRadius.all(Radius.circular(12)),
+      borderRadius: const BorderRadius.all(Radius.circular(Radii.sm)),
       onTap: onTap,
       child: InputDecorator(
         isEmpty: value == null,

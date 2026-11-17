@@ -11,6 +11,13 @@ abstract final class Insets {
   static const double xxl = 48;
 }
 
+/// Corner radii: buttons and fields, cards and sheets, round shapes.
+abstract final class Radii {
+  static const double sm = 8;
+  static const double lg = 16;
+  static const double full = 999;
+}
+
 /// Layout breakpoints.
 abstract final class Breakpoints {
   /// From this width on the app uses a navigation rail and multi-column

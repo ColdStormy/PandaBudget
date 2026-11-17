@@ -1,33 +1,42 @@
 import 'package:flutter/material.dart';
 
-/// The PandaBudget palette: panda black and white with bamboo green as the
-/// only accent.
+/// The PandaBudget palette (Bamboo design system): panda black and white
+/// with bamboo green as the only accent.
 abstract final class PandaColors {
-  // Panda black and the greys between it and white.
-  static const Color ink = Color(0xFF151716);
-  static const Color charcoal = Color(0xFF1C1F1D);
-  static const Color graphite = Color(0xFF2A2E2B);
-  static const Color slate = Color(0xFF5E645F);
-  static const Color mist = Color(0xFFDADDD5);
-  static const Color rice = Color(0xFFF5F6F2);
+  // Light surfaces and text. `ink` is also the panda black of the logo.
+  static const Color ink = Color(0xFF111412);
+  static const Color slate = Color(0xFF5B645D);
+  static const Color mist = Color(0xFFDDE3DC);
+  static const Color stone = Color(0xFF8A948C);
+  static const Color sunk = Color(0xFFEEF1EC);
+  static const Color rice = Color(0xFFF7F8F5);
   static const Color white = Color(0xFFFFFFFF);
 
+  // Dark surfaces and text.
+  static const Color night = Color(0xFF0F1210);
+  static const Color nightCard = Color(0xFF171B19);
+  static const Color nightSunk = Color(0xFF1F2420);
+  static const Color nightLine = Color(0xFF2A312C);
+  static const Color nightStone = Color(0xFF5E6962);
+  static const Color nightInk = Color(0xFFEEF2EE);
+  static const Color nightSlate = Color(0xFFA3ADA5);
+
   // Bamboo.
-  static const Color bamboo = Color(0xFF5A8A2B);
-  static const Color bambooDeep = Color(0xFF1D3309);
-  static const Color bambooShoot = Color(0xFFA8D08C);
-  static const Color bambooPale = Color(0xFFE4F0D8);
+  static const Color bamboo = Color(0xFF2E7D4F);
+  static const Color bambooShoot = Color(0xFF7CC79A);
+  static const Color bambooPale = Color(0xFFDCEFE3);
+  static const Color bambooNight = Color(0xFF1E3327);
 
   // Used sparingly for money going out and for warnings.
-  static const Color clay = Color(0xFFB4483C);
-  static const Color clayLight = Color(0xFFF0A69C);
+  static const Color clay = Color(0xFFB42318);
+  static const Color clayLight = Color(0xFFFF8A80);
   static const Color amber = Color(0xFFB57A14);
   static const Color amberLight = Color(0xFFE6BE6A);
 
   /// Colours offered for accounts, categories, budgets and goals. Muted so
   /// that charts stay calm next to the bamboo accent.
   static const List<int> swatches = [
-    0xFF5A8A2B,
+    0xFF2E7D4F,
     0xFF3F7D3A,
     0xFF89A85A,
     0xFF4F8F8B,
