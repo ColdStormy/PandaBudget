@@ -16,7 +16,8 @@ import 'package:pandabudget/features/transactions/domain/ledger_transaction.dart
 /// Fills [db] with a small, realistic household: two accounts, a plan,
 /// budgets, goals and a few months of transactions up to November 2026.
 ///
-/// Used by widget and golden tests so screens show meaningful content.
+/// Used by golden tests and the demo entry point (`main_demo.dart`) so
+/// screens show meaningful content.
 Future<void> seedDemoData(AppDatabase db) async {
   final accounts = DriftAccountRepository(db);
   final categories = DriftCategoryRepository(db);

@@ -1,0 +1,12 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    { "name": "PandaBudget", "request": "launch", "type": "dart" },
+    {
+      "name": "PandaBudget (demo data)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_demo.dart"
+    }
+  ]
+}
