@@ -115,7 +115,9 @@ abstract final class AppTheme {
     Color navColor(Set<WidgetState> states, Color selected, Color other) =>
         states.contains(WidgetState.selected) ? selected : other;
     UnderlineInputBorder underline(Color color, [double width = 1]) =>
-        UnderlineInputBorder(borderSide: BorderSide(color: color, width: width));
+        UnderlineInputBorder(
+          borderSide: BorderSide(color: color, width: width),
+        );
 
     return base.copyWith(
       textTheme: text,
@@ -154,14 +156,12 @@ abstract final class AppTheme {
         elevation: 0,
         height: 64,
         iconTheme: WidgetStateProperty.resolveWith(
-          (states) => IconThemeData(
-            color: navColor(states, scheme.primary, muted),
-          ),
+          (states) =>
+              IconThemeData(color: navColor(states, scheme.primary, muted)),
         ),
         labelTextStyle: WidgetStateProperty.resolveWith(
-          (states) => text.labelSmall?.copyWith(
-            color: navColor(states, ink, muted),
-          ),
+          (states) =>
+              text.labelSmall?.copyWith(color: navColor(states, ink, muted)),
         ),
       ),
       navigationRailTheme: NavigationRailThemeData(
@@ -245,8 +245,7 @@ abstract final class AppTheme {
           (states) => navColor(states, scheme.onPrimary, scheme.outline),
         ),
         trackColor: WidgetStateProperty.resolveWith(
-          (states) =>
-              navColor(states, scheme.primary, scheme.surfaceContainer),
+          (states) => navColor(states, scheme.primary, scheme.surfaceContainer),
         ),
         trackOutlineColor: WidgetStateProperty.resolveWith(
           (states) => navColor(states, transparent, scheme.outline),
