@@ -3,13 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pandabudget/app/routes.dart';
 import 'package:pandabudget/core/l10n/l10n.dart';
+import 'package:pandabudget/core/money/money_providers.dart';
 import 'package:pandabudget/core/theme/panda_colors.dart';
 import 'package:pandabudget/core/theme/spacing.dart';
 import 'package:pandabudget/core/time/year_month.dart';
 import 'package:pandabudget/core/widgets/charts.dart';
+import 'package:pandabudget/core/widgets/page_widgets.dart';
 import 'package:pandabudget/core/widgets/panda_widgets.dart';
 import 'package:pandabudget/features/analysis/domain/analysis.dart';
-import 'package:pandabudget/features/analysis/presentation/budget_status_view.dart';
 import 'package:pandabudget/features/categories/domain/category.dart';
 import 'package:pandabudget/features/categories/presentation/category_widgets.dart';
 import 'package:pandabudget/features/planning/domain/forecast.dart';
@@ -53,6 +54,7 @@ class _AnalysisScreenState extends ConsumerState<AnalysisScreen> {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final finance = context.financeColors;
+    final money = ref.money(context);
     final currentMonth = ref.watch(currentMonthProvider);
     final month = _selected ?? currentMonth;
     final from = month.addMonths(-(_trendMonths - 1));
@@ -60,164 +62,192 @@ class _AnalysisScreenState extends ConsumerState<AnalysisScreen> {
     final budgets = ref.watch(budgetsProvider).value ?? const [];
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.navAnalysis),
-        actions: [
-          MonthSwitcher(
-            month: month,
-            max: currentMonth,
-            onChanged: (value) => setState(() => _selected = value),
-          ),
-          gapSm,
-        ],
-      ),
-      body: AsyncView(
-        value: ref.watch(transactionsInMonthsProvider((from: from, to: month))),
-        builder: (transactions) {
-          final inMonth = transactions
-              .where((t) => month.contains(t.bookingDate))
-              .toList();
-          final summaries = monthlySummaries(
-            transactions,
-            tree,
-            from: from,
-            to: month,
-          );
-          final summary = summaries.last;
-          final totals = totalsByCategory(inMonth, tree, direction: _direction);
-          final statuses = budgetStatuses(budgets, inMonth, tree, month: month);
+      body: SafeArea(
+        bottom: false,
+        child: PageBody(
+          bottomPadding: Insets.xl,
+          children: [
+            // Outside the data builder so it stays while a month loads.
+            PageHeader(
+              title: l10n.navAnalysis,
+              action: MonthSwitcher(
+                month: month,
+                max: currentMonth,
+                onChanged: (value) => setState(() => _selected = value),
+              ),
+            ),
+            AsyncView(
+              value: ref.watch(
+                transactionsInMonthsProvider((from: from, to: month)),
+              ),
+              builder: (transactions) {
+                final inMonth = transactions
+                    .where((t) => month.contains(t.bookingDate))
+                    .toList();
+                final summaries = monthlySummaries(
+                  transactions,
+                  tree,
+                  from: from,
+                  to: month,
+                );
+                final summary = summaries.last;
+                final totals = totalsByCategory(
+                  inMonth,
+                  tree,
+                  direction: _direction,
+                );
+                final statuses = budgetStatuses(
+                  budgets,
+                  inMonth,
+                  tree,
+                  month: month,
+                );
 
-          return PageBody(
-            bottomPadding: Insets.xl,
-            children: [
-              gapSm,
-              PandaCard(
-                child: Row(
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Figure(
-                        label: l10n.income,
-                        amountMinor: summary.incomeMinor,
+                    gapSm,
+                    // On wide windows the figures would otherwise drift apart.
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 560),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Caption(l10n.net),
+                          gapXs,
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: AmountText(
+                              summary.netMinor,
+                              tone: AmountTone.signed,
+                              showPlus: true,
+                              style: theme.textTheme.displayLarge,
+                            ),
+                          ),
+                          gapMd,
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Figure(
+                                  label: l10n.income,
+                                  amountMinor: summary.incomeMinor,
+                                ),
+                              ),
+                              gapMd,
+                              Expanded(
+                                child: Figure(
+                                  label: l10n.spent,
+                                  amountMinor: summary.expenseMinor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    SectionHeader(l10n.byCategory),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 360),
+                      child: ChipBar<FlowDirection>(
+                        options: {
+                          FlowDirection.expense: l10n.spending,
+                          FlowDirection.income: l10n.income,
+                        },
+                        selected: _direction,
+                        onSelected: (value) =>
+                            setState(() => _direction = value),
                       ),
                     ),
                     gapMd,
-                    Expanded(
-                      child: Figure(
-                        label: l10n.spent,
-                        amountMinor: summary.expenseMinor,
-                      ),
-                    ),
-                    gapMd,
-                    Expanded(
-                      child: Figure(
-                        label: l10n.net,
-                        amountMinor: summary.netMinor,
-                        tone: AmountTone.signed,
-                        showPlus: true,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SectionHeader(
-                l10n.byCategory,
-                trailing: SegmentedButton<FlowDirection>(
-                  style: const ButtonStyle(
-                    visualDensity: VisualDensity.compact,
-                  ),
-                  segments: [
-                    ButtonSegment(
-                      value: FlowDirection.expense,
-                      label: Text(l10n.spending),
-                    ),
-                    ButtonSegment(
-                      value: FlowDirection.income,
-                      label: Text(l10n.income),
-                    ),
-                  ],
-                  selected: {_direction},
-                  showSelectedIcon: false,
-                  onSelectionChanged: (selection) =>
-                      setState(() => _direction = selection.first),
-                ),
-              ),
-              PandaCard(
-                child: totals.isEmpty
-                    ? Padding(
+                    if (totals.isEmpty)
+                      Padding(
                         padding: const EdgeInsets.symmetric(
                           vertical: Insets.lg,
                         ),
                         child: Center(
                           child: Text(
                             l10n.noTransactionsInMonth,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
+                            style: theme.textTheme.bodySmall,
                           ),
                         ),
                       )
-                    : _Breakdown(
+                    else
+                      _Breakdown(
                         totals: totals,
                         tree: tree,
                         onCategoryTap: (id) =>
                             _showTransactions(month, tree, id),
                       ),
-              ),
-              if (ref.watch(monthPlanProvider(month)) case final plan?
-                  when plan.incomeMinor != 0 || plan.expensesMinor != 0) ...[
-                SectionHeader(l10n.planVsActual),
-                _PlanComparison(plan: plan, actual: summary),
-              ],
-              if (statuses.isNotEmpty) ...[
-                SectionHeader(l10n.tabBudgets),
-                AdaptiveColumns(
-                  children: [
-                    for (final status in statuses)
-                      PandaCard(child: BudgetStatusView(status: status)),
-                  ],
-                ),
-              ],
-              SectionHeader(
-                l10n.trendTitle,
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    LegendDot(color: finance.income, label: l10n.income),
-                    gapMd,
-                    LegendDot(
-                      color: theme.colorScheme.secondary,
-                      label: l10n.spent,
+                    if (ref.watch(monthPlanProvider(month)) case final plan?
+                        when plan.incomeMinor != 0 ||
+                            plan.expensesMinor != 0) ...[
+                      SectionHeader(l10n.planVsActual),
+                      _PlanComparison(plan: plan, actual: summary),
+                    ],
+                    if (statuses.isNotEmpty) ...[
+                      SectionHeader(l10n.tabBudgets),
+                      AdaptiveColumns(
+                        spacing: Insets.sm,
+                        children: [
+                          for (final status in statuses)
+                            BudgetRow(
+                              title: status.budget.name,
+                              detail:
+                                  '${money.format(status.spentMinor)} '
+                                  '${l10n.ofAmount} '
+                                  '${money.format(status.limitMinor)}',
+                              progress: status.ratio,
+                              color: Color(status.budget.colorValue),
+                              note:
+                                  '${money.format(status.remainingMinor.abs())} '
+                                  '${status.isOverspent ? l10n.over : l10n.left}',
+                              noteColor: status.isOverspent
+                                  ? finance.expense
+                                  : null,
+                            ),
+                        ],
+                      ),
+                    ],
+                    SectionHeader(
+                      l10n.trendTitle,
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          LegendDot(color: finance.income, label: l10n.income),
+                          gapMd,
+                          LegendDot(
+                            color: theme.colorScheme.secondary,
+                            label: l10n.spent,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: Insets.sm),
+                      child: MonthBarChart(
+                        months: [for (final s in summaries) s.month],
+                        selected: month,
+                        series: [
+                          BarSeries(
+                            label: l10n.income,
+                            color: finance.income,
+                            values: [for (final s in summaries) s.incomeMinor],
+                          ),
+                          BarSeries(
+                            label: l10n.spent,
+                            color: theme.colorScheme.secondary,
+                            values: [for (final s in summaries) s.expenseMinor],
+                          ),
+                        ],
+                      ),
                     ),
                   ],
-                ),
-              ),
-              PandaCard(
-                padding: const EdgeInsets.fromLTRB(
-                  Insets.md,
-                  Insets.lg,
-                  Insets.lg,
-                  Insets.md,
-                ),
-                child: MonthBarChart(
-                  months: [for (final s in summaries) s.month],
-                  selected: month,
-                  series: [
-                    BarSeries(
-                      label: l10n.income,
-                      color: finance.income,
-                      values: [for (final s in summaries) s.incomeMinor],
-                    ),
-                    BarSeries(
-                      label: l10n.spent,
-                      color: theme.colorScheme.secondary,
-                      values: [for (final s in summaries) s.expenseMinor],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          );
-        },
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -274,46 +304,44 @@ class _PlanComparison extends StatelessWidget {
       );
     }
 
-    return PandaCard(
-      child: Table(
-        columnWidths: const {
-          0: FlexColumnWidth(1.2),
-          1: FlexColumnWidth(),
-          2: FlexColumnWidth(),
-          3: FlexColumnWidth(),
-        },
-        defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-        children: [
-          TableRow(
-            children: [
-              const SizedBox.shrink(),
-              for (final header in [l10n.planned, l10n.actual, l10n.difference])
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(header, style: muted),
-                ),
-            ],
-          ),
-          row(
-            l10n.income,
-            plan.incomeMinor,
-            actual.incomeMinor,
-            higherIsBetter: true,
-          ),
-          row(
-            l10n.spending,
-            plan.expensesMinor,
-            actual.expenseMinor,
-            higherIsBetter: false,
-          ),
-          row(
-            l10n.net,
-            plan.savingsPotentialMinor,
-            actual.netMinor,
-            higherIsBetter: true,
-          ),
-        ],
-      ),
+    return Table(
+      columnWidths: const {
+        0: FlexColumnWidth(1.2),
+        1: FlexColumnWidth(),
+        2: FlexColumnWidth(),
+        3: FlexColumnWidth(),
+      },
+      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+      children: [
+        TableRow(
+          children: [
+            const SizedBox.shrink(),
+            for (final header in [l10n.planned, l10n.actual, l10n.difference])
+              Align(
+                alignment: Alignment.centerRight,
+                child: Text(header, style: muted),
+              ),
+          ],
+        ),
+        row(
+          l10n.income,
+          plan.incomeMinor,
+          actual.incomeMinor,
+          higherIsBetter: true,
+        ),
+        row(
+          l10n.spending,
+          plan.expensesMinor,
+          actual.expenseMinor,
+          higherIsBetter: false,
+        ),
+        row(
+          l10n.net,
+          plan.savingsPotentialMinor,
+          actual.netMinor,
+          higherIsBetter: true,
+        ),
+      ],
     );
   }
 }
@@ -423,7 +451,6 @@ class _CategoryRow extends StatelessWidget {
     final muted = theme.colorScheme.onSurfaceVariant;
 
     return InkWell(
-      borderRadius: const BorderRadius.all(Radius.circular(12)),
       onTap: onTap,
       child: Padding(
         padding: EdgeInsets.symmetric(
