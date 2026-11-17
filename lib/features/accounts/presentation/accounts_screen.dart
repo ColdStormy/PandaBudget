@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pandabudget/app/routes.dart';
 import 'package:pandabudget/core/l10n/l10n.dart';
 import 'package:pandabudget/core/theme/spacing.dart';
+import 'package:pandabudget/core/widgets/page_widgets.dart';
 import 'package:pandabudget/core/widgets/panda_widgets.dart';
 import 'package:pandabudget/features/accounts/domain/account.dart';
 import 'package:pandabudget/features/accounts/presentation/account_providers.dart';
@@ -22,13 +23,10 @@ class AccountsScreen extends ConsumerWidget {
         balance.account.id: balance.balanceMinor,
     };
 
+    void add() => context.push(Routes.accountEdit());
+
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.accounts)),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push(Routes.accountEdit()),
-        icon: const Icon(Icons.add),
-        label: Text(l10n.addAccount),
-      ),
+      appBar: SubpageBar(title: l10n.accounts),
       body: AsyncView(
         value: accounts,
         builder: (accounts) {
@@ -37,44 +35,30 @@ class AccountsScreen extends ConsumerWidget {
               icon: Icons.account_balance_outlined,
               title: l10n.noAccountsTitle,
               message: l10n.noAccountsMessage,
+              action: FilledButton(
+                onPressed: add,
+                child: Text(l10n.addAccount),
+              ),
             );
           }
           return PageBody(
             children: [
-              Card(
-                child: Column(
-                  children: [
-                    for (final (index, account) in accounts.indexed) ...[
-                      if (index > 0) const Divider(indent: Insets.md),
-                      ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: Insets.md,
-                          vertical: Insets.xs,
-                        ),
-                        leading: ColorAvatar(
-                          color: Color(account.colorValue),
-                          icon: accountKindIcon(account.kind),
-                        ),
-                        title: Text(account.name),
-                        subtitle: Text(
-                          account.isArchived
-                              ? '${accountKindLabel(l10n, account.kind)} · '
-                                    '${l10n.archived}'
-                              : accountKindLabel(l10n, account.kind),
-                        ),
-                        trailing: balances[account.id] == null
-                            ? null
-                            : AmountText(
-                                balances[account.id]!,
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                        onTap: () =>
-                            context.push(Routes.accountEdit(account.id)),
-                      ),
-                    ],
-                  ],
+              for (final account in accounts)
+                PandaListRow(
+                  leading: ColorAvatar(
+                    color: Color(account.colorValue),
+                    icon: accountKindIcon(account.kind),
+                  ),
+                  title: account.name,
+                  subtitle: account.isArchived
+                      ? '${accountKindLabel(l10n, account.kind)} · '
+                            '${l10n.archived}'
+                      : accountKindLabel(l10n, account.kind),
+                  amountMinor: balances[account.id],
+                  onTap: () => context.push(Routes.accountEdit(account.id)),
                 ),
-              ),
+              gapSm,
+              AddLink(label: l10n.addAccount, onPressed: add),
             ],
           );
         },

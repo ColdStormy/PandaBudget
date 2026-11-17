@@ -152,6 +152,10 @@ class PandaListRow extends StatelessWidget {
     this.tone = AmountTone.plain,
     this.showPlus = false,
     this.leading,
+    this.trailing,
+    this.subtitleMaxLines = 1,
+    this.indent = false,
+    this.enabled = true,
     this.onTap,
     super.key,
   });
@@ -162,6 +166,16 @@ class PandaListRow extends StatelessWidget {
   final AmountTone tone;
   final bool showPlus;
   final Widget? leading;
+
+  /// Shown after the amount, for example a text button.
+  final Widget? trailing;
+  final int subtitleMaxLines;
+
+  /// Indents the row, for children in a tree.
+  final bool indent;
+
+  /// A disabled row is dimmed but can still be tapped.
+  final bool enabled;
   final VoidCallback? onTap;
 
   @override
@@ -172,42 +186,50 @@ class PandaListRow extends StatelessWidget {
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: _rowMin),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: Insets.sm),
-          child: Row(
-            children: [
-              if (leading != null) ...[leading!, gapMd],
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: text.bodyLarge,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (subtitle != null)
+          padding: EdgeInsets.only(
+            top: Insets.sm,
+            bottom: Insets.sm,
+            left: indent ? Insets.lg : 0,
+          ),
+          child: Opacity(
+            opacity: enabled ? 1 : 0.5,
+            child: Row(
+              children: [
+                if (leading != null) ...[leading!, gapMd],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        subtitle!,
-                        style: text.bodySmall,
+                        title,
+                        style: text.bodyLarge,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                  ],
-                ),
-              ),
-              if (amountMinor != null) ...[
-                gapMd,
-                AmountText(
-                  amountMinor!,
-                  tone: tone,
-                  showPlus: showPlus,
-                  style: text.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
+                      if (subtitle != null)
+                        Text(
+                          subtitle!,
+                          style: text.bodySmall,
+                          maxLines: subtitleMaxLines,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                    ],
                   ),
                 ),
+                if (amountMinor != null) ...[
+                  gapMd,
+                  AmountText(
+                    amountMinor!,
+                    tone: tone,
+                    showPlus: showPlus,
+                    style: text.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+                if (trailing != null) ...[gapSm, trailing!],
               ],
-            ],
+            ),
           ),
         ),
       ),
@@ -401,6 +423,30 @@ class AccentTextButton extends StatelessWidget {
         foregroundColor: Theme.of(context).colorScheme.primary,
       ),
       child: Text(label),
+    );
+  }
+}
+
+/// "+ Add account" at the end of a list: left aligned, accent coloured.
+class AddLink extends StatelessWidget {
+  const AddLink({required this.label, required this.onPressed, super.key});
+
+  final String label;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: TextButton.icon(
+        onPressed: onPressed,
+        style: TextButton.styleFrom(
+          foregroundColor: Theme.of(context).colorScheme.primary,
+          padding: const EdgeInsets.only(right: Insets.md),
+        ),
+        icon: const Icon(Icons.add, size: 18),
+        label: Text(label),
+      ),
     );
   }
 }

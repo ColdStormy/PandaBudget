@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pandabudget/app/routes.dart';
 import 'package:pandabudget/core/l10n/l10n.dart';
 import 'package:pandabudget/core/theme/spacing.dart';
+import 'package:pandabudget/core/widgets/page_widgets.dart';
 import 'package:pandabudget/core/widgets/panda_widgets.dart';
 import 'package:pandabudget/features/categories/domain/category.dart';
 import 'package:pandabudget/features/categories/presentation/category_widgets.dart';
@@ -22,12 +23,7 @@ class CategoriesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.categories)),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push(Routes.categoryEdit()),
-        icon: const Icon(Icons.add),
-        label: Text(l10n.addCategory),
-      ),
+      appBar: SubpageBar(title: l10n.categories),
       body: AsyncView(
         value: ref.watch(categoriesProvider),
         builder: (categories) {
@@ -36,22 +32,17 @@ class CategoriesScreen extends ConsumerWidget {
             children: [
               for (final kind in CategoryKind.values) ...[
                 SectionHeader(categoryKindLabel(l10n, kind)),
-                Card(
-                  child: Column(
-                    children: [
-                      for (final (index, root)
-                          in tree.roots
-                              .where((c) => c.kind == kind)
-                              .indexed) ...[
-                        if (index > 0) const Divider(indent: Insets.md),
-                        _CategoryTile(category: root),
-                        for (final child in tree.childrenOf(root.id))
-                          _CategoryTile(category: child, indent: true),
-                      ],
-                    ],
-                  ),
-                ),
+                for (final root in tree.roots.where((c) => c.kind == kind)) ...[
+                  _CategoryRow(category: root),
+                  for (final child in tree.childrenOf(root.id))
+                    _CategoryRow(category: child, indent: true),
+                ],
               ],
+              gapMd,
+              AddLink(
+                label: l10n.addCategory,
+                onPressed: () => context.push(Routes.categoryEdit()),
+              ),
             ],
           );
         },
@@ -60,24 +51,19 @@ class CategoriesScreen extends ConsumerWidget {
   }
 }
 
-class _CategoryTile extends StatelessWidget {
-  const _CategoryTile({required this.category, this.indent = false});
+class _CategoryRow extends StatelessWidget {
+  const _CategoryRow({required this.category, this.indent = false});
 
   final Category category;
   final bool indent;
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      dense: indent,
-      contentPadding: EdgeInsets.only(
-        left: indent ? Insets.xl + Insets.lg : Insets.md,
-        right: Insets.md,
-      ),
+    return PandaListRow(
+      indent: indent,
       leading: CategoryAvatar(category, size: indent ? 28 : 36),
-      title: Text(category.name),
-      subtitle: category.isArchived ? Text(context.l10n.archived) : null,
-      trailing: const Icon(Icons.chevron_right),
+      title: category.name,
+      subtitle: category.isArchived ? context.l10n.archived : null,
       onTap: () => context.push(Routes.categoryEdit(category.id)),
     );
   }

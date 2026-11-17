@@ -3,10 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pandabudget/core/l10n/l10n.dart';
 import 'package:pandabudget/core/theme/spacing.dart';
 import 'package:pandabudget/core/time/year_month.dart';
+import 'package:pandabudget/core/widgets/page_widgets.dart';
 import 'package:pandabudget/features/settings/presentation/settings_providers.dart';
 
-/// Scaffold for create/edit screens: close button, title, save action and a
-/// centred column of fields.
+/// Scaffold for create/edit screens: back button, title, delete and save
+/// actions in the top bar and a centred column of fields.
 class FormPage extends StatelessWidget {
   const FormPage({
     required this.title,
@@ -27,21 +28,14 @@ class FormPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return Scaffold(
-      appBar: AppBar(
-        leading: const CloseButton(),
-        title: Text(title),
+      appBar: SubpageBar(
+        title: title,
         actions: [
           if (onDelete != null)
-            IconButton(
-              tooltip: l10n.delete,
-              onPressed: onDelete,
-              icon: const Icon(Icons.delete_outline),
-            ),
+            TextButton(onPressed: onDelete, child: Text(l10n.delete)),
           if (onSave != null)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: Insets.sm),
-              child: FilledButton(onPressed: onSave, child: Text(l10n.save)),
-            ),
+            AccentTextButton(label: l10n.save, onPressed: onSave),
+          gapSm,
         ],
       ),
       body: Form(

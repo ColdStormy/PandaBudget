@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pandabudget/core/l10n/l10n.dart';
 import 'package:pandabudget/core/theme/spacing.dart';
 import 'package:pandabudget/core/widgets/form_widgets.dart';
+import 'package:pandabudget/core/widgets/page_widgets.dart';
 import 'package:pandabudget/core/widgets/panda_widgets.dart';
 import 'package:pandabudget/features/categories/presentation/category_widgets.dart';
 import 'package:pandabudget/features/categorization/application/categorization_service.dart';
@@ -177,15 +178,10 @@ class _RuleFormState extends ConsumerState<_RuleForm> with FormInit {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             FieldLabel(l10n.ruleConditions),
-            SegmentedButton<bool>(
-              segments: [
-                ButtonSegment(value: true, label: Text(l10n.ruleMatchAll)),
-                ButtonSegment(value: false, label: Text(l10n.ruleMatchAny)),
-              ],
-              selected: {_matchAll},
-              showSelectedIcon: false,
-              onSelectionChanged: (selection) =>
-                  setState(() => _matchAll = selection.first),
+            ChipBar<bool>(
+              options: {true: l10n.ruleMatchAll, false: l10n.ruleMatchAny},
+              selected: _matchAll,
+              onSelected: (value) => setState(() => _matchAll = value),
             ),
           ],
         ),

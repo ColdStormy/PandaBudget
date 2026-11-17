@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pandabudget/app/routes.dart';
 import 'package:pandabudget/core/l10n/l10n.dart';
 import 'package:pandabudget/core/theme/spacing.dart';
+import 'package:pandabudget/core/widgets/page_widgets.dart';
 import 'package:pandabudget/core/widgets/panda_widgets.dart';
 import 'package:pandabudget/features/categories/presentation/category_widgets.dart';
 import 'package:pandabudget/features/categorization/application/categorization_service.dart';
@@ -52,9 +53,11 @@ class RulesScreen extends ConsumerWidget {
     final l10n = context.l10n;
     final tree = ref.watch(categoryTreeProvider);
 
+    void add() => context.push(Routes.ruleEdit());
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.rules),
+      appBar: SubpageBar(
+        title: l10n.rules,
         actions: [
           IconButton(
             tooltip: l10n.applyRulesNow,
@@ -71,11 +74,6 @@ class RulesScreen extends ConsumerWidget {
           gapSm,
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push(Routes.ruleEdit()),
-        icon: const Icon(Icons.add),
-        label: Text(l10n.addRule),
-      ),
       body: AsyncView(
         value: ref.watch(rulesProvider),
         builder: (rules) {
@@ -84,9 +82,11 @@ class RulesScreen extends ConsumerWidget {
               icon: Icons.rule,
               title: l10n.noRulesTitle,
               message: l10n.noRulesMessage,
+              action: FilledButton(onPressed: add, child: Text(l10n.addRule)),
             );
           }
           return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(
@@ -97,14 +97,16 @@ class RulesScreen extends ConsumerWidget {
                 ),
                 child: Text(
                   l10n.rulesOrderHint,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
               ),
               Expanded(
                 child: ReorderableListView.builder(
-                  padding: const EdgeInsets.only(bottom: Insets.xxl * 2),
+                  padding: const EdgeInsets.symmetric(horizontal: Insets.md),
+                  footer: Padding(
+                    padding: const EdgeInsets.only(bottom: Insets.xl),
+                    child: AddLink(label: l10n.addRule, onPressed: add),
+                  ),
                   itemCount: rules.length,
                   onReorderItem: (oldIndex, newIndex) async {
                     final ids = [for (final rule in rules) rule.id];
@@ -114,23 +116,20 @@ class RulesScreen extends ConsumerWidget {
                   itemBuilder: (context, index) {
                     final rule = rules[index];
                     final category = tree[rule.categoryId];
-                    return ListTile(
+                    return Padding(
                       key: ValueKey(rule.id),
-                      contentPadding: const EdgeInsets.only(
-                        left: Insets.md,
-                        right: Insets.xxl,
+                      // Room for the drag handle on desktop.
+                      padding: const EdgeInsets.only(right: Insets.xl),
+                      child: PandaListRow(
+                        leading: CategoryAvatar(category, size: 36),
+                        title: rule.name,
+                        subtitle:
+                            '${describeRule(l10n, rule)}\n'
+                            '→ ${category == null ? '' : tree.pathOf(category.id)}',
+                        subtitleMaxLines: 3,
+                        enabled: rule.isEnabled,
+                        onTap: () => context.push(Routes.ruleEdit(rule.id)),
                       ),
-                      leading: CategoryAvatar(category, size: 36),
-                      title: Text(rule.name),
-                      subtitle: Text(
-                        '${describeRule(l10n, rule)}\n'
-                        '→ ${category == null ? '' : tree.pathOf(category.id)}',
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      isThreeLine: true,
-                      enabled: rule.isEnabled,
-                      onTap: () => context.push(Routes.ruleEdit(rule.id)),
                     );
                   },
                 ),

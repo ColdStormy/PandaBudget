@@ -6,6 +6,7 @@ import 'package:pandabudget/core/l10n/l10n.dart';
 import 'package:pandabudget/core/time/clock.dart';
 import 'package:pandabudget/core/time/dates.dart';
 import 'package:pandabudget/core/widgets/form_widgets.dart';
+import 'package:pandabudget/core/widgets/page_widgets.dart';
 import 'package:pandabudget/core/widgets/panda_widgets.dart';
 import 'package:pandabudget/features/categories/domain/category.dart';
 import 'package:pandabudget/features/categories/presentation/category_widgets.dart';
@@ -140,23 +141,14 @@ class _PlannedItemFormState extends ConsumerState<_PlannedItemForm>
       onSave: _save,
       onDelete: isNew ? null : _delete,
       children: [
-        SegmentedButton<PlannedKind>(
-          segments: [
-            ButtonSegment(
-              value: PlannedKind.expense,
-              icon: const Icon(Icons.south_west),
-              label: Text(l10n.payment),
-            ),
-            ButtonSegment(
-              value: PlannedKind.income,
-              icon: const Icon(Icons.north_east),
-              label: Text(l10n.income),
-            ),
-          ],
-          selected: {_kind},
-          showSelectedIcon: false,
-          onSelectionChanged: (selection) => setState(() {
-            _kind = selection.first;
+        ChipBar<PlannedKind>(
+          options: {
+            PlannedKind.expense: l10n.payment,
+            PlannedKind.income: l10n.income,
+          },
+          selected: _kind,
+          onSelected: (kind) => setState(() {
+            _kind = kind;
             _categoryId = null;
           }),
         ),

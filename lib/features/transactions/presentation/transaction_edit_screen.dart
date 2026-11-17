@@ -6,6 +6,7 @@ import 'package:pandabudget/core/l10n/l10n.dart';
 import 'package:pandabudget/core/time/clock.dart';
 import 'package:pandabudget/core/time/dates.dart';
 import 'package:pandabudget/core/widgets/form_widgets.dart';
+import 'package:pandabudget/core/widgets/page_widgets.dart';
 import 'package:pandabudget/core/widgets/panda_widgets.dart';
 import 'package:pandabudget/features/accounts/presentation/account_providers.dart';
 import 'package:pandabudget/features/categories/presentation/category_widgets.dart';
@@ -141,7 +142,7 @@ class _TransactionFormState extends ConsumerState<_TransactionForm>
 
     if (accounts.isEmpty && isNew) {
       return Scaffold(
-        appBar: AppBar(leading: const CloseButton()),
+        appBar: const SubpageBar(title: ''),
         body: EmptyState(
           icon: Icons.account_balance_outlined,
           title: l10n.noAccountsTitle,
@@ -160,23 +161,10 @@ class _TransactionFormState extends ConsumerState<_TransactionForm>
       onSave: _save,
       onDelete: isNew ? null : _delete,
       children: [
-        SegmentedButton<bool>(
-          segments: [
-            ButtonSegment(
-              value: false,
-              icon: const Icon(Icons.south_west),
-              label: Text(l10n.expense),
-            ),
-            ButtonSegment(
-              value: true,
-              icon: const Icon(Icons.north_east),
-              label: Text(l10n.income),
-            ),
-          ],
-          selected: {_isIncome},
-          showSelectedIcon: false,
-          onSelectionChanged: (selection) =>
-              setState(() => _isIncome = selection.first),
+        ChipBar<bool>(
+          options: {false: l10n.expense, true: l10n.income},
+          selected: _isIncome,
+          onSelected: (value) => setState(() => _isIncome = value),
         ),
         AmountField(controller: _amount, label: l10n.amount),
         SelectField<int>(

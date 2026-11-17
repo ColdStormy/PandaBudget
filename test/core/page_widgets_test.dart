@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pandabudget/core/l10n/l10n.dart';
 import 'package:pandabudget/core/theme/panda_colors.dart';
+import 'package:pandabudget/core/widgets/form_widgets.dart';
 import 'package:pandabudget/core/widgets/page_widgets.dart';
 import 'package:pandabudget/core/widgets/panda_widgets.dart';
 
@@ -99,6 +101,59 @@ void main() {
     expect(find.text('€780.00'), findsOneWidget);
     await tester.tap(find.text('Rent'));
     expect(taps, 1);
+  });
+
+  testWidgets('PandaListRow shows a trailing widget and dims when disabled', (
+    tester,
+  ) async {
+    await pumpWidgetInApp(
+      tester,
+      const PandaListRow(
+        title: 'Import',
+        subtitle: 'a\nb\nc',
+        subtitleMaxLines: 3,
+        trailing: Text('Undo'),
+        enabled: false,
+      ),
+    );
+
+    expect(find.text('Undo'), findsOneWidget);
+    expect(tester.widget<Opacity>(find.byType(Opacity).first).opacity, 0.5);
+  });
+
+  testWidgets('AddLink fires and is left aligned', (tester) async {
+    var taps = 0;
+    await pumpWidgetInApp(
+      tester,
+      AddLink(label: 'Add account', onPressed: () => taps++),
+    );
+
+    await tester.tap(find.text('Add account'));
+    expect(taps, 1);
+    expect(tester.getTopLeft(find.byType(TextButton)).dx, lessThan(40));
+  });
+
+  testWidgets('FormPage has save and delete in the top bar', (tester) async {
+    var saved = 0;
+    var deleted = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: FormPage(
+          title: 'Edit account',
+          onSave: () => saved++,
+          onDelete: () => deleted++,
+          children: const [Text('field')],
+        ),
+      ),
+    );
+
+    expect(find.text('Edit account'), findsOneWidget);
+    expect(find.byIcon(Icons.chevron_left), findsOneWidget);
+    await tester.tap(find.text('Save'));
+    await tester.tap(find.text('Delete'));
+    expect([saved, deleted], [1, 1]);
   });
 
   testWidgets('BudgetRow turns red above 100 percent', (tester) async {

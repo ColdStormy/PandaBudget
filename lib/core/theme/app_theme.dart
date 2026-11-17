@@ -106,6 +106,9 @@ abstract final class AppTheme {
       labelSmall: style(t.labelSmall, AppText.navLabel, muted),
     );
 
+    // Component styles start from the themed label style so they keep the
+    // font family; the raw type scale has none.
+    final control = text.labelLarge!;
     final line = BorderSide(color: scheme.outlineVariant);
     const radius = BorderRadius.all(Radius.circular(Radii.lg));
     const smallRadius = BorderRadius.all(Radius.circular(Radii.sm));
@@ -187,7 +190,7 @@ abstract final class AppTheme {
         style: FilledButton.styleFrom(
           minimumSize: const Size(0, 36),
           padding: const EdgeInsets.symmetric(horizontal: Insets.md),
-          textStyle: AppText.control,
+          textStyle: control,
           shape: buttonShape,
         ),
       ),
@@ -197,14 +200,14 @@ abstract final class AppTheme {
           padding: const EdgeInsets.symmetric(horizontal: Insets.md),
           foregroundColor: ink,
           side: BorderSide(color: scheme.outline),
-          textStyle: AppText.control,
+          textStyle: control,
           shape: buttonShape,
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: muted,
-          textStyle: AppText.control,
+          textStyle: control,
           shape: buttonShape,
         ),
       ),
@@ -224,7 +227,7 @@ abstract final class AppTheme {
         elevation: 0,
         pressElevation: 0,
         shape: buttonShape,
-        labelStyle: AppText.control.copyWith(
+        labelStyle: control.copyWith(
           color: WidgetStateColor.resolveWith(
             (states) => navColor(states, scheme.primary, muted),
           ),
@@ -234,7 +237,7 @@ abstract final class AppTheme {
         style: SegmentedButton.styleFrom(
           side: line,
           shape: buttonShape,
-          textStyle: AppText.control,
+          textStyle: control,
           foregroundColor: muted,
           selectedBackgroundColor: scheme.primaryContainer,
           selectedForegroundColor: scheme.primary,
@@ -257,8 +260,8 @@ abstract final class AppTheme {
         indicatorColor: scheme.primary,
         indicatorSize: TabBarIndicatorSize.label,
         dividerColor: scheme.outlineVariant,
-        labelStyle: AppText.control.copyWith(fontWeight: FontWeight.w600),
-        unselectedLabelStyle: AppText.control,
+        labelStyle: control.copyWith(fontWeight: FontWeight.w600),
+        unselectedLabelStyle: control,
       ),
       progressIndicatorTheme: ProgressIndicatorThemeData(
         color: scheme.primary,
