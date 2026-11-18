@@ -68,6 +68,24 @@ State management is [Riverpod](https://riverpod.dev); navigation is
 [Drift](https://drift.simonbinder.eu). Amounts are stored as integers in
 minor units (cents), dates as `yyyymmdd` integers.
 
+## Design
+
+The interface follows the Bamboo design system: flat sections instead of
+cards, one accent (bamboo green), text toggles instead of outlined chips,
+and hierarchy from headings and spacing rather than dividers.
+
+- `lib/core/theme/` holds the tokens: `panda_colors.dart` (palette and
+  `FinanceColors` for income, expense, warning), `app_text.dart` (type
+  scale), `spacing.dart` (insets, radii, breakpoints) and `app_theme.dart`
+  (the Material component themes built from them).
+- `lib/core/widgets/page_widgets.dart` holds the building blocks screens
+  are made of: `PageHeader`, `SubpageBar`, `ActionLink`, `PandaListRow`,
+  `BudgetRow`, `AccountTile`, `ChipBar`, `AddLink` and `joinDetails` (joins
+  row subtitles without repeating a part).
+- Read colours and text styles from `Theme.of(context)`. Component themes
+  must start from the themed text styles (`textTheme.labelLarge`), not from
+  `AppText` directly: the raw scale has no font family.
+
 ## Tests
 
 ```bash
@@ -76,11 +94,11 @@ flutter test
 
 | Kind | Where | Notes |
 |---|---|---|
-| Unit | `test/core`, `test/features` | Pure logic, including bank file fixtures in `test/fixtures`. |
+| Unit | `test/core`, `test/features` | Pure logic, including bank file fixtures in `test/fixtures`, and widget tests of the shared widgets (`pumpWidgetInApp` from `test/helpers/pump_widget.dart`). |
 | Database | `test/database` | Repositories on an in-memory SQLite database. |
 | Migration | `test/drift` | Every schema snapshot must migrate to the current schema. |
-| App flows | `test/app` | The whole app on an in-memory database: import, categorise, forms. Use `appTest` and `pumpApp` from `test/helpers/pump_app.dart`. |
-| Golden | `test/goldens` | Screenshots of the main screens with demo data (Linux only). Refresh after intended visual changes with the command below. |
+| App flows | `test/app` | The whole app on an in-memory database: import, categorise, forms, and a layout check that visits every screen in German, dark mode and 360 px width to catch overflows. Use `appTest` and `pumpApp` from `test/helpers/pump_app.dart`. |
+| Golden | `test/goldens` | Screenshots of the main screens with demo data and a gallery of the shared widgets (Linux only). Refresh after intended visual changes with the command below. |
 | Integration | `integration_test` | `flutter test integration_test -d linux` |
 
 ```bash

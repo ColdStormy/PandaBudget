@@ -6,8 +6,6 @@ analyzer:
     - android/**
     - linux/**
     - windows/**
-    # Design reference package; its example imports a package the app does not use.
-    - design_include/**
     - "**/*.g.dart"
     - lib/l10n/generated/**
     - lib/database/app_database.steps.dart

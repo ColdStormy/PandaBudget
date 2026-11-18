@@ -186,82 +186,85 @@ class _RuleFormState extends ConsumerState<_RuleForm> with FormInit {
           ],
         ),
         for (final (index, condition) in _conditions.indexed)
-          PandaCard(
-            padding: const EdgeInsets.all(Insets.md),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: SelectField<RuleField>(
-                        label: l10n.ruleField,
-                        value: condition.field,
-                        items: {
-                          for (final field in RuleField.values)
-                            field: ruleFieldLabel(l10n, field),
-                        },
-                        onChanged: (field) => setState(() {
-                          condition.field = field ?? condition.field;
-                          final allowed = RuleOperator.forField(
-                            condition.field,
-                          );
-                          if (!allowed.contains(condition.operator)) {
-                            condition.operator = allowed.first;
-                          }
-                        }),
-                      ),
-                    ),
-                    gapSm,
-                    Expanded(
-                      child: SelectField<RuleOperator>(
-                        label: l10n.ruleOperator,
-                        value: condition.operator,
-                        items: {
-                          for (final operator in RuleOperator.forField(
-                            condition.field,
-                          ))
-                            operator: ruleOperatorLabel(l10n, operator),
-                        },
-                        onChanged: (operator) => setState(
-                          () => condition.operator =
-                              operator ?? condition.operator,
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(Insets.md),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SelectField<RuleField>(
+                          label: l10n.ruleField,
+                          value: condition.field,
+                          items: {
+                            for (final field in RuleField.values)
+                              field: ruleFieldLabel(l10n, field),
+                          },
+                          onChanged: (field) => setState(() {
+                            condition.field = field ?? condition.field;
+                            final allowed = RuleOperator.forField(
+                              condition.field,
+                            );
+                            if (!allowed.contains(condition.operator)) {
+                              condition.operator = allowed.first;
+                            }
+                          }),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                gapSm,
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: condition.value,
-                        keyboardType: condition.field.isNumeric
-                            ? const TextInputType.numberWithOptions(
-                                decimal: true,
-                                signed: true,
-                              )
-                            : TextInputType.text,
-                        decoration: InputDecoration(
-                          labelText: l10n.ruleValue,
-                          helperText: condition.field.isNumeric
-                              ? l10n.ruleAmountHint
-                              : null,
+                      gapSm,
+                      Expanded(
+                        child: SelectField<RuleOperator>(
+                          label: l10n.ruleOperator,
+                          value: condition.operator,
+                          items: {
+                            for (final operator in RuleOperator.forField(
+                              condition.field,
+                            ))
+                              operator: ruleOperatorLabel(l10n, operator),
+                          },
+                          onChanged: (operator) => setState(
+                            () => condition.operator =
+                                operator ?? condition.operator,
+                          ),
                         ),
-                        validator: (value) => requiredValidator(context, value),
                       ),
-                    ),
-                    if (_conditions.length > 1)
-                      IconButton(
-                        tooltip: l10n.delete,
-                        icon: const Icon(Icons.remove_circle_outline),
-                        onPressed: () => setState(() {
-                          _conditions.removeAt(index).value.dispose();
-                        }),
+                    ],
+                  ),
+                  gapSm,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: condition.value,
+                          keyboardType: condition.field.isNumeric
+                              ? const TextInputType.numberWithOptions(
+                                  decimal: true,
+                                  signed: true,
+                                )
+                              : TextInputType.text,
+                          decoration: InputDecoration(
+                            labelText: l10n.ruleValue,
+                            helperText: condition.field.isNumeric
+                                ? l10n.ruleAmountHint
+                                : null,
+                          ),
+                          validator: (value) =>
+                              requiredValidator(context, value),
+                        ),
                       ),
-                  ],
-                ),
-              ],
+                      if (_conditions.length > 1)
+                        IconButton(
+                          tooltip: l10n.delete,
+                          icon: const Icon(Icons.remove_circle_outline),
+                          onPressed: () => setState(() {
+                            _conditions.removeAt(index).value.dispose();
+                          }),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         Align(

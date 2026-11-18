@@ -44,28 +44,6 @@ class PageBody extends StatelessWidget {
   }
 }
 
-/// The app's content container: a quiet outlined surface.
-class PandaCard extends StatelessWidget {
-  const PandaCard({
-    required this.child,
-    this.padding = const EdgeInsets.all(Insets.lg),
-    this.onTap,
-    super.key,
-  });
-
-  final Widget child;
-  final EdgeInsetsGeometry padding;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final content = Padding(padding: padding, child: child);
-    return Card(
-      child: onTap == null ? content : InkWell(onTap: onTap, child: content),
-    );
-  }
-}
-
 /// Title above a group of content, with an optional action on the right.
 ///
 /// With [onTap] the whole header opens something and ends in an accent
@@ -101,7 +79,7 @@ class SectionHeader extends StatelessWidget {
   }
 }
 
-/// Small uppercase caption used above figures.
+/// Small muted label, used above figures.
 class Caption extends StatelessWidget {
   const Caption(this.text, {super.key});
 
