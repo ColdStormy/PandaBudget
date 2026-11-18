@@ -85,13 +85,27 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
-      # Unsigned debug build: proves the Android app compiles and can be
-      # installed for testing. A release needs a signing key first.
-      - run: flutter build apk --debug
+      # Writes the release keystore and android/key.properties from the
+      # repository secrets. The build fails if a secret is missing.
+      - name: Restore release signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          test -n "$KEYSTORE_BASE64" && test -n "$KEYSTORE_PASSWORD" \
+            && test -n "$KEY_ALIAS" && test -n "$KEY_PASSWORD"
+          echo "$KEYSTORE_BASE64" | base64 -d > android/app/pandabudget-release.jks
+          printf 'storePassword=%s\nkeyPassword=%s\nkeyAlias=%s\nstoreFile=pandabudget-release.jks\n' \
+            "$KEYSTORE_PASSWORD" "$KEY_PASSWORD" "$KEY_ALIAS" > android/key.properties
+      # Release APK signed with the project key, so each build can update the
+      # previous one on a phone.
+      - run: flutter build apk --release
       - uses: actions/upload-artifact@v4
         with:
-          name: pandabudget-android-debug
-          path: build/app/outputs/flutter-apk/app-debug.apk
+          name: pandabudget-android-release
+          path: build/app/outputs/flutter-apk/app-release.apk
 
   windows:
     name: Windows build
