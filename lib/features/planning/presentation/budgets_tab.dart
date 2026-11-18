@@ -3,13 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pandabudget/app/routes.dart';
 import 'package:pandabudget/core/l10n/l10n.dart';
-import 'package:pandabudget/core/money/money_providers.dart';
-import 'package:pandabudget/core/theme/panda_colors.dart';
 import 'package:pandabudget/core/theme/spacing.dart';
 import 'package:pandabudget/core/widgets/page_widgets.dart';
 import 'package:pandabudget/core/widgets/panda_widgets.dart';
 import 'package:pandabudget/features/analysis/domain/analysis.dart';
 import 'package:pandabudget/features/categories/presentation/category_widgets.dart';
+import 'package:pandabudget/features/planning/presentation/budget_status_row.dart';
 import 'package:pandabudget/features/planning/presentation/planning_providers.dart';
 import 'package:pandabudget/features/transactions/presentation/transaction_providers.dart';
 
@@ -19,8 +18,6 @@ class BudgetsTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final money = ref.money(context);
-    final finance = context.financeColors;
     final month = ref.watch(currentMonthProvider);
     final tree = ref.watch(categoryTreeProvider);
     final transactions =
@@ -61,20 +58,9 @@ class BudgetsTab extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       if (statuses[budget.id] case final status?)
-                        BudgetRow(
-                          title: budget.name,
-                          detail:
-                              '${money.format(status.spentMinor)} '
-                              '${l10n.ofAmount} '
-                              '${money.format(status.limitMinor)}',
-                          progress: status.ratio,
-                          color: Color(budget.colorValue),
-                          note:
-                              '${money.format(status.remainingMinor.abs())} '
-                              '${status.isOverspent ? l10n.over : l10n.left}',
-                          noteColor: status.isOverspent
-                              ? finance.expense
-                              : null,
+                        BudgetStatusRow(
+                          status,
+                          showRemaining: true,
                           onTap: () =>
                               context.push(Routes.budgetEdit(budget.id)),
                         )

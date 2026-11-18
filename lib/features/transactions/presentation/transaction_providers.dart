@@ -36,3 +36,11 @@ final transactionsInMonthsProvider =
           .watch(transactionRepositoryProvider)
           .watchRange(range.from.firstDay, range.to.lastDay),
     );
+
+/// How many transactions still have no category (capped at 100).
+final uncategorizedCountProvider = StreamProvider<int>(
+  (ref) => ref
+      .watch(transactionRepositoryProvider)
+      .watch(const TransactionFilter(uncategorizedOnly: true), limit: 100)
+      .map((transactions) => transactions.length),
+);

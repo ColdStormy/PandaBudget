@@ -27,9 +27,22 @@ void main() {
           children: [
             PageHeader(
               title: 'Accounts',
-              caption: 'Total balance',
-              figure: const Builder(builder: _balance),
               action: AccentTextButton(label: 'Hide amounts', onPressed: () {}),
+            ),
+            const SizedBox(height: 8),
+            const HeadlineFigures(
+              caption: 'This month',
+              netMinor: 123985,
+              incomeLabel: 'Income',
+              incomeMinor: 255000,
+              expenseLabel: 'Spent',
+              expenseMinor: -131015,
+            ),
+            const SizedBox(height: 16),
+            const Callout(
+              icon: Icons.shield_outlined,
+              color: Color(0xFFB57A14),
+              child: Text('€500 stays reserved for budgets'),
             ),
             const SizedBox(height: 16),
             const Row(
@@ -101,6 +114,3 @@ void main() {
     }, skip: !Platform.isLinux);
   }
 }
-
-Widget _balance(BuildContext context) =>
-    Text('€11,239.85', style: Theme.of(context).textTheme.displayLarge);

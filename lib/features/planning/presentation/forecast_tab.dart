@@ -259,23 +259,10 @@ class _MonthDetail extends StatelessWidget {
         ],
         if (month.reserveMinor > 0) ...[
           gapLg,
-          Container(
-            padding: const EdgeInsets.all(Insets.md),
-            decoration: BoxDecoration(
-              color: context.financeColors.warning.withValues(alpha: 0.1),
-              borderRadius: const BorderRadius.all(Radius.circular(Radii.sm)),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.shield_outlined,
-                  size: 20,
-                  color: context.financeColors.warning,
-                ),
-                gapMd,
-                Expanded(child: _ReserveText(amountMinor: month.reserveMinor)),
-              ],
-            ),
+          Callout(
+            icon: Icons.shield_outlined,
+            color: context.financeColors.warning,
+            child: _ReserveText(amountMinor: month.reserveMinor),
           ),
         ],
       ],

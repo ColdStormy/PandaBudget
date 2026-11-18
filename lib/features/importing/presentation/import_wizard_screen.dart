@@ -206,22 +206,22 @@ class _FileStep extends ConsumerWidget {
         ),
         if (state.tableError != null) ...[
           gapMd,
-          _Notice(
+          Callout(
             icon: Icons.error_outline,
             color: theme.colorScheme.error,
-            text: state.tableError!,
+            child: Text(state.tableError!),
           ),
         ],
         gapLg,
         if (accounts.isEmpty)
-          _Notice(
+          Callout(
             icon: Icons.info_outline,
             color: theme.colorScheme.primary,
-            text: l10n.importNeedsAccount,
             action: TextButton(
               onPressed: () => context.push(Routes.accountEdit()),
               child: Text(l10n.addAccount),
             ),
+            child: Text(l10n.importNeedsAccount),
           )
         else
           SelectField<int>(
@@ -249,14 +249,16 @@ class _FileStep extends ConsumerWidget {
             ),
           ),
           gapMd,
-          _Notice(
+          Callout(
             icon: state.usesSavedProfile
                 ? Icons.check_circle_outline
                 : Icons.auto_awesome_outlined,
             color: theme.colorScheme.primary,
-            text: state.usesSavedProfile
-                ? l10n.formatRecognised(state.profile!.name)
-                : l10n.formatNew,
+            child: Text(
+              state.usesSavedProfile
+                  ? l10n.formatRecognised(state.profile!.name)
+                  : l10n.formatNew,
+            ),
           ),
         ],
       ],
@@ -280,10 +282,10 @@ class _ColumnsStep extends ConsumerWidget {
       padding: const EdgeInsets.all(Insets.md),
       children: [
         if (state.tableError != null) ...[
-          _Notice(
+          Callout(
             icon: Icons.error_outline,
             color: theme.colorScheme.error,
-            text: state.tableError!,
+            child: Text(state.tableError!),
           ),
           gapMd,
         ],
@@ -438,39 +440,6 @@ class _ReviewStep extends ConsumerWidget {
           showPlus: true,
         );
       },
-    );
-  }
-}
-
-class _Notice extends StatelessWidget {
-  const _Notice({
-    required this.icon,
-    required this.color,
-    required this.text,
-    this.action,
-  });
-
-  final IconData icon;
-  final Color color;
-  final String text;
-  final Widget? action;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(Insets.md),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: const BorderRadius.all(Radius.circular(Radii.sm)),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: color, size: 20),
-          gapMd,
-          Expanded(child: Text(text)),
-          ?action,
-        ],
-      ),
     );
   }
 }

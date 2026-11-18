@@ -18,6 +18,18 @@ class PlannedOccurrence {
   int get signedAmountMinor => item.signedAmountMinor;
 }
 
+/// The due dates of [items] from [from] to [to] (both inclusive), earliest
+/// first.
+List<PlannedOccurrence> plannedOccurrences(
+  Iterable<PlannedItem> items,
+  DateTime from,
+  DateTime to,
+) => [
+  for (final item in items)
+    for (final date in item.occurrencesBetween(from, to))
+      PlannedOccurrence(item: item, date: date),
+]..sort((a, b) => a.date.compareTo(b.date));
+
 /// How much a month's plan reserves for one budget.
 @immutable
 class BudgetAllocation {
@@ -146,11 +158,11 @@ Forecast buildForecast({
   final drafts = <_MonthDraft>[];
   for (var i = 0; i < monthCount; i++) {
     final month = from.addMonths(i);
-    final occurrences = [
-      for (final item in items)
-        for (final date in item.occurrencesIn(month))
-          PlannedOccurrence(item: item, date: date),
-    ]..sort((a, b) => a.date.compareTo(b.date));
+    final occurrences = plannedOccurrences(
+      items,
+      month.firstDay,
+      month.lastDay,
+    );
 
     final activeBudgets = budgets.where((b) => b.isActiveIn(month)).toList();
     final coverage = {

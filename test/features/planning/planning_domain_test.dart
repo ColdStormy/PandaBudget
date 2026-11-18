@@ -33,6 +33,42 @@ PlannedItem item({
 const january = YearMonth(2027, 1);
 
 void main() {
+  group('plannedOccurrences', () {
+    test('lists the due dates of all items in the window, earliest first', () {
+      final rent = item(amount: 1, start: DateTime(2027, 1, 3));
+      final gym = item(amount: 1, id: 2, start: DateTime(2027, 1, 20));
+      final once = item(
+        amount: 1,
+        id: 3,
+        unit: RecurrenceUnit.once,
+        start: DateTime(2027, 2),
+      );
+
+      final result = plannedOccurrences(
+        [rent, gym, once],
+        DateTime(2027, 1, 15),
+        DateTime(2027, 2, 14),
+      );
+
+      expect(
+        [for (final o in result) (o.item.id, o.date)],
+        [
+          (2, DateTime(2027, 1, 20)),
+          (3, DateTime(2027, 2)),
+          (1, DateTime(2027, 2, 3)),
+        ],
+      );
+    });
+
+    test('is empty when nothing falls due or items are inactive', () {
+      final paused = item(amount: 1, isActive: false);
+      expect(
+        plannedOccurrences([paused], DateTime(2027), DateTime(2027, 12, 31)),
+        isEmpty,
+      );
+    });
+  });
+
   group('PlannedItem occurrences', () {
     test('monthly items fall due once a month on their day', () {
       final rent = item(amount: 98000, start: DateTime(2027, 1, 3));

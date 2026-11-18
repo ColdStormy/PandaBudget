@@ -259,6 +259,42 @@ void main() {
     expect(colorOf('€120.50'), ink.onSurface);
     expect(colorOf('-€120.50'), FinanceColors.light.expense);
   });
+
+  testWidgets('HeadlineFigures shows net, income and spending', (tester) async {
+    await pumpWidgetInApp(
+      tester,
+      const HeadlineFigures(
+        caption: 'This month',
+        netMinor: 12000,
+        incomeLabel: 'Income',
+        incomeMinor: 50000,
+        expenseLabel: 'Spent',
+        expenseMinor: -38000,
+      ),
+    );
+
+    expect(find.text('This month'), findsOneWidget);
+    expect(find.text('+€120.00'), findsOneWidget);
+    expect(find.text('€500.00'), findsOneWidget);
+    expect(find.text('-€380.00'), findsOneWidget);
+  });
+
+  testWidgets('Callout shows its text and action', (tester) async {
+    var taps = 0;
+    await pumpWidgetInApp(
+      tester,
+      Callout(
+        icon: Icons.info_outline,
+        color: Colors.green,
+        action: TextButton(onPressed: () => taps++, child: const Text('Fix')),
+        child: const Text('Needs an account'),
+      ),
+    );
+
+    expect(find.text('Needs an account'), findsOneWidget);
+    await tester.tap(find.text('Fix'));
+    expect(taps, 1);
+  });
 }
 
 Color _primary(WidgetTester tester) =>

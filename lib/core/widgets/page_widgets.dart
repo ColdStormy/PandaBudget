@@ -10,21 +10,11 @@ import 'package:pandabudget/core/widgets/panda_widgets.dart';
 /// Smallest height of a tappable row.
 const double _rowMin = 48;
 
-/// Top of a main screen: title with an optional action, then a caption and
-/// one big figure (usually an [AmountText] in `displayLarge`).
+/// Top of a main screen: title with an optional leading widget and action.
 class PageHeader extends StatelessWidget {
-  const PageHeader({
-    required this.title,
-    this.caption,
-    this.figure,
-    this.leading,
-    this.action,
-    super.key,
-  });
+  const PageHeader({required this.title, this.leading, this.action, super.key});
 
   final String title;
-  final String? caption;
-  final Widget? figure;
 
   /// Shown before the title, for example the logo.
   final Widget? leading;
@@ -47,11 +37,125 @@ class PageHeader extends StatelessWidget {
               ?action,
             ],
           ),
-          if (caption != null) ...[
-            gapSm,
-            Text(caption!, style: theme.textTheme.bodySmall),
-          ],
-          if (figure != null) ...[gapXs, figure!],
+        ],
+      ),
+    );
+  }
+}
+
+/// Two [Figure]s side by side.
+class FigurePair extends StatelessWidget {
+  const FigurePair({
+    required this.firstLabel,
+    required this.firstMinor,
+    required this.secondLabel,
+    required this.secondMinor,
+    super.key,
+  });
+
+  final String firstLabel;
+  final int firstMinor;
+  final String secondLabel;
+  final int secondMinor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Figure(label: firstLabel, amountMinor: firstMinor),
+        ),
+        gapMd,
+        Expanded(
+          child: Figure(label: secondLabel, amountMinor: secondMinor),
+        ),
+      ],
+    );
+  }
+}
+
+/// A month's result: caption, the net amount in big type, and income and
+/// spending below. Kept narrow so the figures do not drift apart on wide
+/// windows.
+class HeadlineFigures extends StatelessWidget {
+  const HeadlineFigures({
+    required this.caption,
+    required this.netMinor,
+    required this.incomeMinor,
+    required this.incomeLabel,
+    required this.expenseMinor,
+    required this.expenseLabel,
+    super.key,
+  });
+
+  final String caption;
+  final int netMinor;
+  final int incomeMinor;
+  final String incomeLabel;
+  final int expenseMinor;
+  final String expenseLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 560),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Caption(caption),
+          gapXs,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: AmountText(
+              netMinor,
+              tone: AmountTone.signed,
+              showPlus: true,
+              style: Theme.of(context).textTheme.displayLarge,
+            ),
+          ),
+          gapMd,
+          FigurePair(
+            firstLabel: incomeLabel,
+            firstMinor: incomeMinor,
+            secondLabel: expenseLabel,
+            secondMinor: expenseMinor,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A short note in a softly tinted box, with an icon and an optional action.
+class Callout extends StatelessWidget {
+  const Callout({
+    required this.icon,
+    required this.color,
+    required this.child,
+    this.action,
+    super.key,
+  });
+
+  final IconData icon;
+  final Color color;
+  final Widget child;
+  final Widget? action;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(Insets.md),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: const BorderRadius.all(Radius.circular(Radii.sm)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 20),
+          gapMd,
+          Expanded(child: child),
+          ?action,
         ],
       ),
     );

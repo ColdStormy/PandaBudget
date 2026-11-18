@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:pandabudget/app/panda_logo.dart';
 import 'package:pandabudget/app/routes.dart';
 import 'package:pandabudget/core/l10n/l10n.dart';
-import 'package:pandabudget/core/money/money_providers.dart';
 import 'package:pandabudget/core/theme/panda_colors.dart';
 import 'package:pandabudget/core/theme/spacing.dart';
 import 'package:pandabudget/core/time/clock.dart';
@@ -18,18 +17,10 @@ import 'package:pandabudget/features/analysis/domain/analysis.dart';
 import 'package:pandabudget/features/categories/presentation/category_widgets.dart';
 import 'package:pandabudget/features/planning/domain/forecast.dart';
 import 'package:pandabudget/features/planning/domain/planned_item.dart';
+import 'package:pandabudget/features/planning/presentation/budget_status_row.dart';
 import 'package:pandabudget/features/planning/presentation/planning_providers.dart';
-import 'package:pandabudget/features/transactions/data/drift_transaction_repository.dart';
 import 'package:pandabudget/features/transactions/domain/ledger_transaction.dart';
 import 'package:pandabudget/features/transactions/presentation/transaction_providers.dart';
-
-/// How many transactions still have no category (capped at 100).
-final uncategorizedCountProvider = StreamProvider<int>(
-  (ref) => ref
-      .watch(transactionRepositoryProvider)
-      .watch(const TransactionFilter(uncategorizedOnly: true), limit: 100)
-      .map((transactions) => transactions.length),
-);
 
 /// The current month at a glance: plan and reality side by side.
 class OverviewScreen extends ConsumerWidget {
@@ -67,36 +58,15 @@ class OverviewScreen extends ConsumerWidget {
     final planMonth = forecast?.months.firstOrNull;
     final hasPlan = plannedItems.isNotEmpty || budgets.isNotEmpty;
 
-    final upcoming = [
-      for (final item in plannedItems)
-        for (final date in item.occurrencesBetween(
-          today,
-          today.add(const Duration(days: 31)),
-        ))
-          PlannedOccurrence(item: item, date: date),
-    ]..sort((a, b) => a.date.compareTo(b.date));
+    final upcoming = plannedOccurrences(
+      plannedItems,
+      today,
+      today.add(const Duration(days: 31)),
+    );
 
     final isFresh = balances.isEmpty || !hasPlan;
 
-    final money = ref.money(context);
     final isWide = MediaQuery.sizeOf(context).width >= Breakpoints.wide;
-
-    Widget figures(
-      String firstLabel,
-      int first,
-      String secondLabel,
-      int second,
-    ) => Row(
-      children: [
-        Expanded(
-          child: Figure(label: firstLabel, amountMinor: first),
-        ),
-        gapMd,
-        Expanded(
-          child: Figure(label: secondLabel, amountMinor: second),
-        ),
-      ],
-    );
 
     final header = InkWell(
       onTap: () => context.go(Routes.analysis),
@@ -106,24 +76,15 @@ class OverviewScreen extends ConsumerWidget {
           PageHeader(
             title: context.formatMonth(month),
             leading: isWide ? null : const PandaLogo(size: 32),
-            caption: l10n.overviewActual,
-            figure: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: AmountText(
-                summary.netMinor,
-                tone: AmountTone.signed,
-                showPlus: true,
-                style: theme.textTheme.displayLarge,
-              ),
-            ),
           ),
-          gapMd,
-          figures(
-            l10n.income,
-            summary.incomeMinor,
-            l10n.spent,
-            summary.expenseMinor,
+          gapSm,
+          HeadlineFigures(
+            caption: l10n.overviewActual,
+            netMinor: summary.netMinor,
+            incomeLabel: l10n.income,
+            incomeMinor: summary.incomeMinor,
+            expenseLabel: l10n.spent,
+            expenseMinor: summary.expenseMinor,
           ),
         ],
       ),
@@ -135,14 +96,7 @@ class OverviewScreen extends ConsumerWidget {
         child: PageBody(
           bottomPadding: Insets.xl,
           children: [
-            // On wide windows the figures would otherwise drift far apart.
-            Align(
-              alignment: Alignment.centerLeft,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 560),
-                child: header,
-              ),
-            ),
+            Align(alignment: Alignment.centerLeft, child: header),
             if (isFresh) ...[
               gapLg,
               _GettingStarted(
@@ -184,11 +138,11 @@ class OverviewScreen extends ConsumerWidget {
                       large: true,
                     ),
                     gapMd,
-                    figures(
-                      l10n.savingForGoals,
-                      planMonth?.goalContributionsMinor ?? 0,
-                      l10n.freeAfterGoals,
-                      planMonth?.freeMinor ?? 0,
+                    FigurePair(
+                      firstLabel: l10n.savingForGoals,
+                      firstMinor: planMonth?.goalContributionsMinor ?? 0,
+                      secondLabel: l10n.freeAfterGoals,
+                      secondMinor: planMonth?.freeMinor ?? 0,
                     ),
                   ],
                 ),
@@ -230,15 +184,7 @@ class OverviewScreen extends ConsumerWidget {
                         onTap: () => context.go(Routes.analysis),
                       ),
                       for (final status in statuses.take(4))
-                        BudgetRow(
-                          title: status.budget.name,
-                          detail:
-                              '${money.format(status.spentMinor)} '
-                              '${l10n.ofAmount} '
-                              '${money.format(status.limitMinor)}',
-                          progress: status.ratio,
-                          color: Color(status.budget.colorValue),
-                        ),
+                        BudgetStatusRow(status),
                     ],
                   ),
                 if (goals.isNotEmpty)

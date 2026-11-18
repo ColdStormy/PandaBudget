@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pandabudget/app/routes.dart';
 import 'package:pandabudget/core/l10n/l10n.dart';
-import 'package:pandabudget/core/money/money_providers.dart';
 import 'package:pandabudget/core/theme/panda_colors.dart';
 import 'package:pandabudget/core/theme/spacing.dart';
 import 'package:pandabudget/core/time/year_month.dart';
@@ -14,6 +13,7 @@ import 'package:pandabudget/features/analysis/domain/analysis.dart';
 import 'package:pandabudget/features/categories/domain/category.dart';
 import 'package:pandabudget/features/categories/presentation/category_widgets.dart';
 import 'package:pandabudget/features/planning/domain/forecast.dart';
+import 'package:pandabudget/features/planning/presentation/budget_status_row.dart';
 import 'package:pandabudget/features/planning/presentation/planning_providers.dart';
 import 'package:pandabudget/features/transactions/domain/ledger_transaction.dart';
 import 'package:pandabudget/features/transactions/presentation/transaction_providers.dart';
@@ -54,7 +54,6 @@ class _AnalysisScreenState extends ConsumerState<AnalysisScreen> {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final finance = context.financeColors;
-    final money = ref.money(context);
     final currentMonth = ref.watch(currentMonthProvider);
     final month = _selected ?? currentMonth;
     final from = month.addMonths(-(_trendMonths - 1));
@@ -107,44 +106,13 @@ class _AnalysisScreenState extends ConsumerState<AnalysisScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     gapSm,
-                    // On wide windows the figures would otherwise drift apart.
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 560),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Caption(l10n.net),
-                          gapXs,
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: Alignment.centerLeft,
-                            child: AmountText(
-                              summary.netMinor,
-                              tone: AmountTone.signed,
-                              showPlus: true,
-                              style: theme.textTheme.displayLarge,
-                            ),
-                          ),
-                          gapMd,
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Figure(
-                                  label: l10n.income,
-                                  amountMinor: summary.incomeMinor,
-                                ),
-                              ),
-                              gapMd,
-                              Expanded(
-                                child: Figure(
-                                  label: l10n.spent,
-                                  amountMinor: summary.expenseMinor,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                    HeadlineFigures(
+                      caption: l10n.net,
+                      netMinor: summary.netMinor,
+                      incomeLabel: l10n.income,
+                      incomeMinor: summary.incomeMinor,
+                      expenseLabel: l10n.spent,
+                      expenseMinor: summary.expenseMinor,
                     ),
                     SectionHeader(l10n.byCategory),
                     ConstrainedBox(
@@ -191,21 +159,7 @@ class _AnalysisScreenState extends ConsumerState<AnalysisScreen> {
                         spacing: Insets.sm,
                         children: [
                           for (final status in statuses)
-                            BudgetRow(
-                              title: status.budget.name,
-                              detail:
-                                  '${money.format(status.spentMinor)} '
-                                  '${l10n.ofAmount} '
-                                  '${money.format(status.limitMinor)}',
-                              progress: status.ratio,
-                              color: Color(status.budget.colorValue),
-                              note:
-                                  '${money.format(status.remainingMinor.abs())} '
-                                  '${status.isOverspent ? l10n.over : l10n.left}',
-                              noteColor: status.isOverspent
-                                  ? finance.expense
-                                  : null,
-                            ),
+                            BudgetStatusRow(status, showRemaining: true),
                         ],
                       ),
                     ],
