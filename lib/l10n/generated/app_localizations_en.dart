@@ -118,6 +118,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nextMonth => 'Next month';
 
   @override
+  String get previousYear => 'Previous year';
+
+  @override
+  String get nextYear => 'Next year';
+
+  @override
   String get income => 'Income';
 
   @override
@@ -268,6 +274,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get forecastChartTitle => 'What each month leaves over';
+
+  @override
+  String get forecastYearTitle => 'Year at a glance';
 
   @override
   String get yearlyPlus => 'Plus for the year';
