@@ -314,6 +314,18 @@ abstract class AppLocalizations {
   /// **'Next month'**
   String get nextMonth;
 
+  /// No description provided for @previousYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous year'**
+  String get previousYear;
+
+  /// No description provided for @nextYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Next year'**
+  String get nextYear;
+
   /// No description provided for @income.
   ///
   /// In en, this message translates to:
@@ -577,6 +589,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'What each month leaves over'**
   String get forecastChartTitle;
+
+  /// No description provided for @forecastYearTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Year at a glance'**
+  String get forecastYearTitle;
 
   /// No description provided for @yearlyPlus.
   ///

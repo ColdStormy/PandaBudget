@@ -24,6 +24,7 @@ class ForecastTab extends ConsumerStatefulWidget {
 
 class _ForecastTabState extends ConsumerState<ForecastTab> {
   YearMonth? _selected;
+  int? _selectedYear;
 
   @override
   Widget build(BuildContext context) {
@@ -53,18 +54,16 @@ class _ForecastTabState extends ConsumerState<ForecastTab> {
         final months = [for (final m in forecast.months) m.month];
         final selected = months.contains(_selected) ? _selected! : months.first;
         final month = forecast.forMonth(selected)!;
+        final years = forecast.years;
+        final yearNumbers = [for (final y in years) y.year];
+        final selectedYear = yearNumbers.contains(_selectedYear)
+            ? _selectedYear!
+            : yearNumbers.first;
+        final year = years.firstWhere((y) => y.year == selectedYear);
         final finance = context.financeColors;
 
         return PageBody(
           children: [
-            gapSm,
-            AdaptiveColumns(
-              columns: forecast.years.length.clamp(1, 3),
-              spacing: Insets.lg,
-              children: [
-                for (final year in forecast.years) _YearBlock(year: year),
-              ],
-            ),
             SectionHeader(l10n.forecastChartTitle),
             Padding(
               padding: const EdgeInsets.only(top: Insets.sm),
@@ -95,6 +94,18 @@ class _ForecastTabState extends ConsumerState<ForecastTab> {
             ),
             gapSm,
             _MonthDetail(month: month, forecast: forecast),
+            gapLg,
+            SectionHeader(l10n.forecastYearTitle),
+            Center(
+              child: YearSwitcher(
+                year: selectedYear,
+                min: yearNumbers.first,
+                max: yearNumbers.last,
+                onChanged: (value) => setState(() => _selectedYear = value),
+              ),
+            ),
+            gapSm,
+            _YearBlock(year: year),
           ],
         );
       },
@@ -102,7 +113,7 @@ class _ForecastTabState extends ConsumerState<ForecastTab> {
   }
 }
 
-/// One calendar year of the forecast: year, balance, income and expenses.
+/// Balance, income and expenses of one calendar year of the forecast.
 class _YearBlock extends StatelessWidget {
   const _YearBlock({required this.year});
 
@@ -111,7 +122,6 @@ class _YearBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final theme = Theme.of(context);
     final first = year.months.first.month;
     final last = year.months.last.month;
     final isFullYear = year.months.length == 12;
@@ -119,20 +129,13 @@ class _YearBlock extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Text('${year.year}', style: theme.textTheme.titleMedium),
-            gapSm,
-            if (!isFullYear)
-              Expanded(
-                child: Caption(
-                  '${context.formatMonthName(first)} – '
-                  '${context.formatMonthName(last)}',
-                ),
-              ),
-          ],
-        ),
-        gapMd,
+        if (!isFullYear) ...[
+          Caption(
+            '${context.formatMonthName(first)} – '
+            '${context.formatMonthName(last)}',
+          ),
+          gapMd,
+        ],
         Figure(
           label: l10n.yearlyPlus,
           amountMinor: year.savingsPotentialMinor,

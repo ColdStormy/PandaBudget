@@ -118,6 +118,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get nextMonth => 'Nächster Monat';
 
   @override
+  String get previousYear => 'Vorheriges Jahr';
+
+  @override
+  String get nextYear => 'Nächstes Jahr';
+
+  @override
   String get income => 'Einnahmen';
 
   @override
@@ -270,6 +276,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get forecastChartTitle => 'Was pro Monat übrig bleibt';
+
+  @override
+  String get forecastYearTitle => 'Jahresübersicht';
 
   @override
   String get yearlyPlus => 'Jahresplus';

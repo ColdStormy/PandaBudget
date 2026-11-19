@@ -329,6 +329,52 @@ class MonthSwitcher extends StatelessWidget {
   }
 }
 
+/// Steps through calendar years, the yearly counterpart of [MonthSwitcher].
+class YearSwitcher extends StatelessWidget {
+  const YearSwitcher({
+    required this.year,
+    required this.onChanged,
+    this.min,
+    this.max,
+    super.key,
+  });
+
+  final int year;
+  final ValueChanged<int> onChanged;
+  final int? min;
+  final int? max;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final canGoBack = min == null || year > min!;
+    final canGoForward = max == null || year < max!;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          tooltip: l10n.previousYear,
+          onPressed: canGoBack ? () => onChanged(year - 1) : null,
+          icon: const Icon(Icons.chevron_left),
+        ),
+        ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 132),
+          child: Text(
+            '$year',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+        ),
+        IconButton(
+          tooltip: l10n.nextYear,
+          onPressed: canGoForward ? () => onChanged(year + 1) : null,
+          icon: const Icon(Icons.chevron_right),
+        ),
+      ],
+    );
+  }
+}
+
 /// A coloured circle with an icon, used for categories and accounts.
 class ColorAvatar extends StatelessWidget {
   const ColorAvatar({
