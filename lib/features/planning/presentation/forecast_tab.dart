@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pandabudget/app/routes.dart';
 import 'package:pandabudget/core/l10n/l10n.dart';
+import 'package:pandabudget/core/theme/app_text.dart';
 import 'package:pandabudget/core/theme/panda_colors.dart';
 import 'package:pandabudget/core/theme/spacing.dart';
 import 'package:pandabudget/core/time/year_month.dart';
@@ -173,7 +174,6 @@ class _MonthDetail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final theme = Theme.of(context);
 
     Widget row(
       String label,
@@ -197,10 +197,7 @@ class _MonthDetail extends StatelessWidget {
       children: [
         SectionHeader(
           title,
-          trailing: AmountText(
-            minus ? -total : total,
-            style: theme.textTheme.titleMedium,
-          ),
+          trailing: AmountText(minus ? -total : total, style: AppText.value),
         ),
         ...rows,
       ],
@@ -256,7 +253,7 @@ class _MonthDetail extends StatelessWidget {
             trailing: AmountText(
               month.freeMinor,
               tone: AmountTone.signed,
-              style: theme.textTheme.titleMedium,
+              style: AppText.value,
             ),
           ),
         ],

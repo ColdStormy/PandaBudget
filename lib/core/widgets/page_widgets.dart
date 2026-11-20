@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pandabudget/core/theme/app_text.dart';
 import 'package:pandabudget/core/theme/panda_colors.dart';
 import 'package:pandabudget/core/theme/spacing.dart';
 import 'package:pandabudget/core/widgets/panda_widgets.dart';
@@ -326,9 +327,7 @@ class PandaListRow extends StatelessWidget {
                     amountMinor!,
                     tone: tone,
                     showPlus: showPlus,
-                    style: text.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
+                    style: AppText.amount,
                   ),
                 ],
                 if (trailing != null) ...[gapSm, trailing!],
@@ -444,10 +443,10 @@ class AccountTile extends StatelessWidget {
                 alignment: Alignment.centerLeft,
                 child: AmountText(
                   balanceMinor,
-                  style: text.titleMedium?.copyWith(
+                  style: AppText.value.copyWith(
                     color: balanceMinor < 0
                         ? context.financeColors.expense
-                        : null,
+                        : Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ),

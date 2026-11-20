@@ -70,9 +70,13 @@ minor units (cents), dates as `yyyymmdd` integers.
 
 ## Design
 
-The interface follows the Bamboo design system: flat sections instead of
-cards, one accent (bamboo green), text toggles instead of outlined chips,
-and hierarchy from headings and spacing rather than dividers.
+The interface follows the New Bamboo (warm) design system: flat sections
+instead of cards, warm cream and charcoal surfaces, forest green as the
+leading colour (lime in dark mode), lime for growth, gold for goals, red only
+for real problems, text toggles instead of outlined chips, and hierarchy from
+headings and spacing rather than dividers. Type is PT Serif (bold) for
+structure and Figtree for everything you read, count or tap; both fonts are
+bundled in `assets/fonts` under the SIL Open Font License.
 
 - `lib/core/theme/` holds the tokens: `panda_colors.dart` (palette and
   `FinanceColors` for income, expense, warning), `app_text.dart` (type

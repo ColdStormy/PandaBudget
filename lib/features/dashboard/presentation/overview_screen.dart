@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pandabudget/app/panda_logo.dart';
 import 'package:pandabudget/app/routes.dart';
 import 'package:pandabudget/core/l10n/l10n.dart';
+import 'package:pandabudget/core/theme/app_text.dart';
 import 'package:pandabudget/core/theme/panda_colors.dart';
 import 'package:pandabudget/core/theme/spacing.dart';
 import 'package:pandabudget/core/time/clock.dart';
@@ -29,7 +30,6 @@ class OverviewScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final theme = Theme.of(context);
     final month = ref.watch(currentMonthProvider);
     final today = dateOnly(ref.watch(clockProvider)());
     final tree = ref.watch(categoryTreeProvider);
@@ -154,7 +154,7 @@ class OverviewScreen extends ConsumerWidget {
                         l10n.accounts,
                         trailing: AmountText(
                           balances.map((b) => b.balanceMinor).sum,
-                          style: theme.textTheme.titleMedium,
+                          style: AppText.value,
                         ),
                       ),
                       _AccountGrid(balances),

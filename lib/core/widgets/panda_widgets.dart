@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pandabudget/core/l10n/l10n.dart';
 import 'package:pandabudget/core/money/money_providers.dart';
+import 'package:pandabudget/core/theme/app_text.dart';
 import 'package:pandabudget/core/theme/panda_colors.dart';
 import 'package:pandabudget/core/theme/spacing.dart';
 import 'package:pandabudget/core/time/year_month.dart';
@@ -316,7 +317,7 @@ class MonthSwitcher extends StatelessWidget {
           child: Text(
             context.formatMonth(month),
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.titleMedium,
+            style: AppText.value,
           ),
         ),
         IconButton(
@@ -362,7 +363,7 @@ class YearSwitcher extends StatelessWidget {
           child: Text(
             '$year',
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.titleMedium,
+            style: AppText.value,
           ),
         ),
         IconButton(

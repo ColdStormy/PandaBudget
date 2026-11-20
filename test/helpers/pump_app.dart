@@ -97,21 +97,37 @@ void appTest(
   }, skip: skip);
 }
 
-/// Loads the real Roboto and Material icon fonts, so rendered screenshots
-/// show text instead of the test font's rectangles.
+/// Loads the real app fonts (PT Serif and Figtree from `assets/fonts`),
+/// Roboto as the fallback, and the Material icon font, so rendered
+/// screenshots show text instead of the test font's rectangles.
 Future<void> loadAppFonts() async {
-  final fonts = Directory(
+  final materialFonts = Directory(
     '${Platform.environment['FLUTTER_ROOT']}/bin/cache/artifacts/material_fonts',
   );
-  Future<ByteData> read(String name) async =>
-      ByteData.sublistView(await File('${fonts.path}/$name').readAsBytes());
+  Future<ByteData> read(Directory dir, String name) async =>
+      ByteData.sublistView(await File('${dir.path}/$name').readAsBytes());
+  Future<ByteData> material(String name) => read(materialFonts, name);
+  // Tests run from the package root.
+  final appFonts = Directory('assets/fonts');
+  Future<ByteData> app(String name) => read(appFonts, name);
 
+  final ptSerif = FontLoader('PT Serif')
+    ..addFont(app('PTSerif-Regular.ttf'))
+    ..addFont(app('PTSerif-Bold.ttf'));
+  final figtree = FontLoader('Figtree')
+    ..addFont(app('Figtree-Regular.ttf'))
+    ..addFont(app('Figtree-Medium.ttf'))
+    ..addFont(app('Figtree-SemiBold.ttf'));
   final roboto = FontLoader('Roboto')
-    ..addFont(read('Roboto-Regular.ttf'))
-    ..addFont(read('Roboto-Medium.ttf'))
-    ..addFont(read('Roboto-Bold.ttf'));
+    ..addFont(material('Roboto-Regular.ttf'))
+    ..addFont(material('Roboto-Medium.ttf'))
+    ..addFont(material('Roboto-Bold.ttf'));
   final icons = FontLoader('MaterialIcons')
-    ..addFont(read('MaterialIcons-Regular.otf'));
-  await roboto.load();
-  await icons.load();
+    ..addFont(material('MaterialIcons-Regular.otf'));
+  await Future.wait([
+    ptSerif.load(),
+    figtree.load(),
+    roboto.load(),
+    icons.load(),
+  ]);
 }

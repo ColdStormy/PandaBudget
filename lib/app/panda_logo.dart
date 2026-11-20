@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pandabudget/core/theme/panda_colors.dart';
 
-/// The app's mark: a panda face on a bamboo-green disc.
+/// The app's mark: a panda face on a forest-green disc.
 class PandaLogo extends StatelessWidget {
   const PandaLogo({this.size = 40, super.key});
 
@@ -20,10 +20,10 @@ class _PandaPainter extends CustomPainter {
     final s = size.width;
     final center = Offset(s / 2, s / 2);
     final black = Paint()..color = PandaColors.ink;
-    final white = Paint()..color = PandaColors.white;
+    final white = Paint()..color = PandaColors.card;
 
     canvas
-      ..drawCircle(center, s / 2, Paint()..color = PandaColors.bamboo)
+      ..drawCircle(center, s / 2, Paint()..color = PandaColors.accentDeep)
       // Ears.
       ..drawCircle(Offset(s * 0.27, s * 0.28), s * 0.12, black)
       ..drawCircle(Offset(s * 0.73, s * 0.28), s * 0.12, black)

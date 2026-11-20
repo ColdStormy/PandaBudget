@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pandabudget/app/routes.dart';
 import 'package:pandabudget/core/l10n/l10n.dart';
+import 'package:pandabudget/core/theme/app_text.dart';
 import 'package:pandabudget/core/theme/panda_colors.dart';
 import 'package:pandabudget/core/theme/spacing.dart';
 import 'package:pandabudget/core/widgets/page_widgets.dart';
@@ -105,7 +106,7 @@ class GoalRow extends StatelessWidget {
                 Expanded(
                   child: Text(
                     goal.name,
-                    style: theme.textTheme.titleMedium,
+                    style: AppText.body.copyWith(fontWeight: FontWeight.w600),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),

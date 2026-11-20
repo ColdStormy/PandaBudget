@@ -38,3 +38,18 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   generate: true
+
+  # Bamboo typefaces: PT Serif for structure, Figtree for text (assets/fonts).
+  fonts:
+    - family: PT Serif
+      fonts:
+        - asset: assets/fonts/PTSerif-Regular.ttf
+        - asset: assets/fonts/PTSerif-Bold.ttf
+          weight: 700
+    - family: Figtree
+      fonts:
+        - asset: assets/fonts/Figtree-Regular.ttf
+        - asset: assets/fonts/Figtree-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Figtree-SemiBold.ttf
+          weight: 600

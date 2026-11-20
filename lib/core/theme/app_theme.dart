@@ -3,9 +3,10 @@ import 'package:pandabudget/core/theme/app_text.dart';
 import 'package:pandabudget/core/theme/panda_colors.dart';
 import 'package:pandabudget/core/theme/spacing.dart';
 
-/// The Bamboo design system as Material themes: flat surfaces without
-/// borders, underline fields, text toggles instead of outlined chips, and
-/// bamboo green for everything interactive.
+/// The New Bamboo (warm) design system as Material themes: cream and
+/// charcoal surfaces without borders, underline fields, text toggles instead
+/// of outlined chips, and forest green (lime in dark) for everything
+/// interactive. PT Serif sets structure, Figtree everything else.
 abstract final class AppTheme {
   static ThemeData get light => _build(_lightScheme, FinanceColors.light);
 
@@ -13,71 +14,78 @@ abstract final class AppTheme {
 
   static const ColorScheme _lightScheme = ColorScheme(
     brightness: Brightness.light,
-    primary: PandaColors.bamboo,
-    onPrimary: PandaColors.white,
-    primaryContainer: PandaColors.bambooPale,
-    onPrimaryContainer: PandaColors.bamboo,
-    secondary: PandaColors.slate,
-    onSecondary: PandaColors.white,
+    primary: PandaColors.accent,
+    onPrimary: PandaColors.accentInk,
+    primaryContainer: PandaColors.accentSoft,
+    onPrimaryContainer: PandaColors.accent,
+    secondary: PandaColors.inkMuted,
+    onSecondary: PandaColors.card,
     secondaryContainer: PandaColors.sunk,
     onSecondaryContainer: PandaColors.ink,
-    tertiary: PandaColors.amber,
-    onTertiary: PandaColors.white,
-    error: PandaColors.clay,
-    onError: PandaColors.white,
-    errorContainer: Color(0xFFF9DEDA),
-    onErrorContainer: Color(0xFF5A1A13),
-    surface: PandaColors.rice,
+    tertiary: PandaColors.gold,
+    onTertiary: PandaColors.inkOnBright,
+    tertiaryContainer: PandaColors.goldSoft,
+    onTertiaryContainer: PandaColors.ink,
+    error: PandaColors.negative,
+    onError: PandaColors.accentInk,
+    errorContainer: PandaColors.negativeSoft,
+    // `negative` on `negativeSoft` is only 4.15:1 in light; ink keeps text at 4.5:1.
+    onErrorContainer: PandaColors.ink,
+    surface: PandaColors.page,
     onSurface: PandaColors.ink,
-    onSurfaceVariant: PandaColors.slate,
-    surfaceContainerLowest: PandaColors.white,
-    surfaceContainerLow: PandaColors.white,
+    onSurfaceVariant: PandaColors.inkMuted,
+    surfaceContainerLowest: PandaColors.card,
+    surfaceContainerLow: PandaColors.card,
     surfaceContainer: PandaColors.sunk,
     surfaceContainerHigh: PandaColors.sunk,
-    surfaceContainerHighest: PandaColors.mist,
-    outline: PandaColors.stone,
-    outlineVariant: PandaColors.mist,
+    surfaceContainerHighest: PandaColors.line,
+    outline: PandaColors.controlBorder,
+    outlineVariant: PandaColors.line,
     inverseSurface: PandaColors.ink,
-    onInverseSurface: PandaColors.rice,
-    inversePrimary: PandaColors.bambooShoot,
+    onInverseSurface: PandaColors.page,
+    inversePrimary: PandaColors.accentDark,
     surfaceTint: Colors.transparent,
   );
 
   static const ColorScheme _darkScheme = ColorScheme(
     brightness: Brightness.dark,
-    primary: PandaColors.bambooShoot,
-    onPrimary: PandaColors.night,
-    primaryContainer: PandaColors.bambooNight,
-    onPrimaryContainer: PandaColors.bambooShoot,
-    secondary: PandaColors.nightSlate,
-    onSecondary: PandaColors.night,
-    secondaryContainer: PandaColors.nightSunk,
-    onSecondaryContainer: PandaColors.nightInk,
-    tertiary: PandaColors.amberLight,
-    onTertiary: Color(0xFF3A2700),
-    error: PandaColors.clayLight,
-    onError: Color(0xFF5A1A13),
-    errorContainer: Color(0xFF6E2A21),
-    onErrorContainer: Color(0xFFF9DEDA),
-    surface: PandaColors.night,
-    onSurface: PandaColors.nightInk,
-    onSurfaceVariant: PandaColors.nightSlate,
-    surfaceContainerLowest: PandaColors.night,
-    surfaceContainerLow: PandaColors.nightCard,
-    surfaceContainer: PandaColors.nightSunk,
-    surfaceContainerHigh: PandaColors.nightSunk,
-    surfaceContainerHighest: PandaColors.nightLine,
-    outline: PandaColors.nightStone,
-    outlineVariant: PandaColors.nightLine,
-    inverseSurface: PandaColors.nightInk,
-    onInverseSurface: PandaColors.night,
-    inversePrimary: PandaColors.bamboo,
+    primary: PandaColors.accentDark,
+    onPrimary: PandaColors.accentInkDark,
+    primaryContainer: PandaColors.accentSoftDark,
+    onPrimaryContainer: PandaColors.accentDark,
+    secondary: PandaColors.inkMutedDark,
+    onSecondary: PandaColors.pageDark,
+    secondaryContainer: PandaColors.sunkDark,
+    onSecondaryContainer: PandaColors.inkDark,
+    tertiary: PandaColors.gold,
+    onTertiary: PandaColors.inkOnBright,
+    tertiaryContainer: PandaColors.goldSoftDark,
+    onTertiaryContainer: PandaColors.inkDark,
+    error: PandaColors.negativeDark,
+    onError: PandaColors.inkOnBright,
+    errorContainer: PandaColors.negativeSoftDark,
+    onErrorContainer: PandaColors.negativeDark,
+    surface: PandaColors.pageDark,
+    onSurface: PandaColors.inkDark,
+    onSurfaceVariant: PandaColors.inkMutedDark,
+    surfaceContainerLowest: PandaColors.pageDark,
+    surfaceContainerLow: PandaColors.cardDark,
+    surfaceContainer: PandaColors.sunkDark,
+    surfaceContainerHigh: PandaColors.sunkDark,
+    surfaceContainerHighest: PandaColors.lineDark,
+    outline: PandaColors.controlBorderDark,
+    outlineVariant: PandaColors.lineDark,
+    inverseSurface: PandaColors.inkDark,
+    onInverseSurface: PandaColors.pageDark,
+    inversePrimary: PandaColors.accent,
     surfaceTint: Colors.transparent,
   );
 
   static ThemeData _build(ColorScheme scheme, FinanceColors finance) {
     final base = ThemeData(
       useMaterial3: true,
+      fontFamily: AppText.sansFamily,
+      fontFamilyFallback: const ['Roboto', 'sans-serif'],
       colorScheme: scheme,
       scaffoldBackgroundColor: scheme.surface,
       canvasColor: scheme.surface,
@@ -85,7 +93,8 @@ abstract final class AppTheme {
       extensions: [finance],
     );
 
-    // Merging into the base styles keeps the platform's font family.
+    // Merging into the base styles keeps the theme's text defaults; the scale
+    // brings its own font family.
     TextStyle? style(TextStyle? from, TextStyle scale, Color color) =>
         from?.merge(scale).copyWith(color: color, letterSpacing: 0);
     final t = base.textTheme;
@@ -106,8 +115,8 @@ abstract final class AppTheme {
       labelSmall: style(t.labelSmall, AppText.navLabel, muted),
     );
 
-    // Component styles start from the themed label style so they keep the
-    // font family; the raw type scale has none.
+    // Component styles start from the themed label style so they carry the
+    // theme's colour as well as the type scale.
     final control = text.labelLarge!;
     final line = BorderSide(color: scheme.outlineVariant);
     const radius = BorderRadius.all(Radius.circular(Radii.lg));
